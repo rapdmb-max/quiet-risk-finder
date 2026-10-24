@@ -45,3 +45,16 @@ export function glance(list: Account[]) {
     workload,
   };
 }
+
+export type Role = "Marta" | "Devon";
+
+/** Head of CS sees every flagged account; a CSM sees only the accounts they own. */
+export function scopeFor(list: Account[], role: Role) {
+  return role === "Marta" ? list : list.filter((a) => a.owner === role);
+}
+
+/** Outreach with no reply for 5+ days is stalled and should be escalated. */
+export const STALL_DAYS = 5;
+export function isStalled(o: { status: string; daysAgo: number }) {
+  return o.status === "waiting" && o.daysAgo >= STALL_DAYS;
+}
