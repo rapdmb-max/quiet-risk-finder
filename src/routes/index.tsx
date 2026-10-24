@@ -32,7 +32,7 @@ function Index() {
   const [view, setView] = useState<View>("brief");
   const [list, setList] = useState<Account[]>(seed);
   const [filter, setFilter] = useState<Filter>("week");
-  const [selectedId, setSelectedId] = useState<string | null>(seed[0].id);
+  const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
