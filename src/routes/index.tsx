@@ -34,6 +34,7 @@ function Index() {
   const [filter, setFilter] = useState<Filter>("week");
   const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
   const [toast, setToast] = useState<string | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const say = (msg: string) => {
@@ -149,9 +150,14 @@ function Index() {
                 {visible.map((a, i) => (
                   <button
                     key={a.id}
-                    onClick={() => setSelectedId(a.id)}
+                    aria-current={selected?.id === a.id ? "true" : undefined}
+                    onClick={() => {
+                      setSelectedId(a.id);
+                      if (window.matchMedia("(max-width: 899px)").matches)
+                        requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                    }}
                     className={cn(
-                      "flex w-full gap-4 border-b border-l-[3px] px-5 py-5 text-left last:border-b-0 hover:bg-soft",
+                      "flex w-full gap-4 border-b focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink border-l-[3px] px-5 py-5 text-left last:border-b-0 hover:bg-soft",
                       selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
                     )}
                   >
@@ -171,7 +177,7 @@ function Index() {
                   </button>
                 ))}
               </div>
-              <div className="min-[900px]:col-span-7">
+              <div ref={detailRef} className="scroll-mt-4 min-[900px]:col-span-7">
                 {selected ? (
                   <AccountDetail
                     key={selected.id}

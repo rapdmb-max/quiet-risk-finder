@@ -14,8 +14,8 @@
 - [x] 1.9 Prototype footer line
 
 ## Phase 2 — Polish
-- [ ] 2.1 Mobile layout (one column, tap scrolls to detail)
-- [ ] 2.2 Dark mode pass
-- [ ] 2.3 Empty states
-- [ ] 2.4 Keyboard and screen-reader pass (rows are buttons, live region on detail)
+- [x] 2.1 Mobile layout (one column, tap scrolls to detail)
+- [x] 2.2 Dark mode pass
+- [x] 2.3 Empty states
+- [x] 2.4 Keyboard and screen-reader pass (rows are buttons, live region on detail)
 - [ ] 2.5 Security scan and publish (public)
