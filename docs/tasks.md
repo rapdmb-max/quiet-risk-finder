@@ -18,4 +18,4 @@
 - [x] 2.2 Dark mode pass
 - [x] 2.3 Empty states
 - [x] 2.4 Keyboard and screen-reader pass (rows are buttons, live region on detail)
-- [ ] 2.5 Security scan and publish (public)
+- [x] 2.5 Security scan and publish (public)
