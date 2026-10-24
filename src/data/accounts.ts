@@ -82,7 +82,7 @@ export const accounts: Account[] = [
     lastTouchDays: 38,
     reason: "Champion changed jobs, usage down 30% this week",
     verdict:
-      "High risk: the person who bought Undertow's customer left, and nobody else is using the product.",
+      "High risk: their champion left, and nobody else on their team is using the product.",
     signals: [
       { label: "Weekly active users", value: "−30%", severity: "bad", source: "Product usage", series: [20, 21, 20, 19, 20, 18, 17, 12] },
       { label: "Champion", value: "Changed jobs", severity: "bad", source: "LinkedIn via HubSpot" },
