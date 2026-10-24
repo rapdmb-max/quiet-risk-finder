@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ACCOUNTS_WATCHED, BRIEF_DATE, CURRENCIES, accounts as seed, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
-import { counts, filterAccounts, headline, isUnderRadar, type Filter } from "@/lib/brief";
+import { ACCOUNTS_WATCHED, BRIEF_DATE, CSMS, CURRENCIES, LAST_WEEK, accounts as seed, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
+import { filterAccounts, glance, isStalled, isUnderRadar, scopeFor, type Filter, type Role } from "@/lib/brief";
 import { CurrencyProvider } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Logo, Tag } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
-import { Glance } from "@/components/undertow/Glance";
+import { Portfolio } from "@/components/undertow/Portfolio";
 import { SEED_OUTREACH, Tracker, type Outreach } from "@/components/undertow/Tracker";
 
 export const Route = createFileRoute("/")({
@@ -23,16 +23,17 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "glance" | "brief" | "tracker";
-const VIEWS = [["glance", "At a glance"], ["brief", "Daily breakdown"], ["tracker", "Waiting on replies"]] as const;
-const FILTERS: { id: Filter; label: string; key: string }[] = [
-  { id: "week", label: "This week", key: "1" },
-  { id: "radar", label: "Under the radar", key: "2" },
-  { id: "handled", label: "Handled", key: "3" },
-];
+type View = "brief" | "tracker" | "portfolio";
+const VIEWS = [["brief", "Brief & triage"], ["tracker", "Outreach"], ["portfolio", "Portfolio"]] as const;
+const ROLES: [Role, string][] = [["Marta", "Head of CS"], ["Devon", "CSM"]];
+const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
+  role === "Marta"
+    ? [{ id: "week", label: "Needs action", key: "1" }, { id: "radar", label: "No owner", key: "2" }, { id: "handled", label: "Handled", key: "3" }]
+    : [{ id: "week", label: "My accounts", key: "1" }, { id: "handled", label: "Handled", key: "2" }];
 
 function Index() {
-  const [view, setView] = useState<View>("glance");
+  const [view, setView] = useState<View>("brief");
+  const [role, setRole] = useState<Role>("Marta");
   const [list, setList] = useState<Account[]>(seed);
   const [filter, setFilter] = useState<Filter>("week");
   const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
@@ -53,16 +54,27 @@ function Index() {
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const sorted = [...list].sort((a, b) => levelRank[a.level] - levelRank[b.level] || b.arr * (a.underRadar ? 1 : 0.5) - a.arr * (b.underRadar ? 1 : 0.5) || Number(b.underRadar) - Number(a.underRadar));
-  const visible = filterAccounts(sorted, filter);
-  const c = counts(list);
-  const h = headline(list);
+  const scoped = scopeFor(sorted, role);
+  const FILTERS = filtersFor(role);
+  const visible = filterAccounts(scoped, filter);
+  const c = { week: filterAccounts(scoped, "week").length, radar: filterAccounts(scoped, "radar").length, handled: filterAccounts(scoped, "handled").length };
+  const g = glance(list);
+  const myOpen = filterAccounts(scoped, "week");
+  const myStalled = outreach.filter((o) => isStalled(o) && (role === "Marta" || o.by === role)).length;
+  const csms = CSMS.filter((x) => x !== "Unassigned");
   const selected = visible.find((a) => a.id === selectedId) ?? visible[0];
-  const open = filterAccounts(sorted, "week");
+  const open = filterAccounts(scoped, "week");
+  const switchRole = (r: Role) => {
+    setRole(r);
+    setFilter("week");
+    setSelectedId(filterAccounts(scopeFor(sorted, r), "week")[0]?.id ?? null);
+    say(r === "Marta" ? "Viewing as Marta, Head of CS." : "Viewing as Devon, CSM. Only his accounts.");
+  };
 
   const changeFilter = (f: Filter) => {
     setView("brief");
     setFilter(f);
-    setSelectedId(filterAccounts(sorted, f)[0]?.id ?? null);
+    setSelectedId(filterAccounts(scoped, f)[0]?.id ?? null);
   };
 
   const update = (id: string, patch: Partial<Account>) =>
@@ -81,7 +93,7 @@ function Index() {
     setSelectedId(next?.id ?? null);
     say(msg);
   };
-  const reachedOut = (id: string) => handle(id, "Marta reached out · watching for 14 days", "Marked as handled. Watching for 14 days.");
+  const reachedOut = (id: string) => handle(id, `${role} reached out · watching for 14 days`, "Marked as handled. Watching for 14 days.");
   const notRisk = (id: string) => handle(id, "Marked not a real risk · signals weighted less", "Got it. These signals will count less here.");
 
   const openInBrief = (id?: string) => {
@@ -92,8 +104,8 @@ function Index() {
   };
 
   // Keyboard navigation
-  const stateRef = useRef({ visible, selected, view, palette });
-  stateRef.current = { visible, selected, view, palette };
+  const stateRef = useRef({ visible, selected, view, palette, FILTERS });
+  stateRef.current = { visible, selected, view, palette, FILTERS };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -109,7 +121,7 @@ function Index() {
       }
       const t = e.target as HTMLElement;
       if (e.metaKey || e.ctrlKey || e.altKey || ["INPUT", "SELECT", "TEXTAREA"].includes(t.tagName)) return;
-      const f = FILTERS.find((x) => x.key === e.key);
+      const f = s.FILTERS.find((x) => x.key === e.key);
       if (f) return changeFilterRef.current(f.id);
       if (s.view !== "brief" || !s.visible.length) return;
       const idx = s.visible.findIndex((a) => a.id === s.selected?.id);
@@ -175,7 +187,14 @@ function Index() {
                   </button>
                 ))}
               </div>
-              <span className="grid size-8 place-items-center rounded-full bg-ink text-[13px] font-semibold text-ink-foreground">M</span>
+              <div role="radiogroup" aria-label="Viewing as" className="flex rounded-md border bg-panel p-0.5 text-[13px]">
+                {ROLES.map(([r, label]) => (
+                  <button key={r} role="radio" aria-checked={role === r} onClick={() => switchRole(r)}
+                    className={cn("rounded px-2.5 py-1", role === r ? "bg-ink font-semibold text-ink-foreground" : "hover:text-ink")}>
+                    {r} · {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </header>
@@ -184,7 +203,7 @@ function Index() {
           {/* Pane 1: sidebar */}
           <aside className="hidden min-[1180px]:block">
             <nav className="sticky top-24 space-y-1" aria-label="Filters">
-              <p className="eyebrow mb-3 px-3">Brief</p>
+              <p className="eyebrow mb-3 px-3">{role === "Marta" ? "Team queue" : "My queue"}</p>
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -201,7 +220,7 @@ function Index() {
               ))}
               <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[13px] text-muted-ink">
                 <p className="eyebrow mb-2">Shortcuts</p>
-                {[["J / K", "Move"], ["E", "Reached out"], ["X", "Not a risk"], ["1–3", "Filters"], ["⌘K", "Search"]].map(([k, l]) => (
+                {[["J / K", "Move"], ["E", "Reached out"], ["X", "Not a risk"], [role === "Marta" ? "1–3" : "1–2", "Filters"], ["⌘K", "Search"]].map(([k, l]) => (
                   <p key={k} className="flex justify-between"><span>{l}</span><span className="font-mono">{k}</span></p>
                 ))}
               </div>
@@ -209,13 +228,15 @@ function Index() {
           </aside>
 
           <main className="min-w-0">
-            {view === "glance" ? (
-              <Glance list={sorted} onOpen={(id) => openInBrief(id)} onAssign={assign} />
+            {view === "portfolio" ? (
+              <Portfolio list={sorted} onOpen={(id) => pick(list.find((x) => x.id === id)!)} />
             ) : view === "tracker" ? (
               <Tracker
                 items={outreach}
+                role={role}
                 onReplied={(id) => { setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))); say("Marked as replied."); }}
-                onOpen={(id) => { const a = list.find((x) => x.id === id); setView("brief"); setFilter(a?.status === "handled" ? "handled" : "week"); setSelectedId(id); }}
+                onOpen={(id) => pick(list.find((x) => x.id === id)!)}
+                onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
               />
             ) : (
               <>
@@ -224,9 +245,29 @@ function Index() {
                     <p className="font-mono text-[13px] text-muted-ink">
                       {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
                     </p>
-                    <h1 className="headline mt-2">
-                      {h.lead} {h.tail && <span className="text-risk">{h.tail}</span>}
-                    </h1>
+                    {role === "Marta" ? (
+                      <>
+                        <h1 className="headline mt-2">
+                          <span className="font-mono">{formatArr(g.arrAtRisk, currency)}</span> a year at risk across {g.open} account{g.open === 1 ? "" : "s"}.{" "}
+                          {g.unowned.length > 0 && <span className="text-risk">{g.unowned.length} {g.unowned.length === 1 ? "has" : "have"} no owner.</span>}
+                        </h1>
+                        <p className="mt-2 text-muted-ink">
+                          Last week: <span className="font-mono">{LAST_WEEK.open}</span> accounts, <span className="font-mono">{formatArr(LAST_WEEK.arrAtRisk, currency)}</span>.
+                          {" "}Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
+                          {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="headline mt-2">
+                          {myOpen.length === 0 ? "Nothing in your book needs you today." : `${myOpen.length} of your accounts need${myOpen.length === 1 ? "s" : ""} you today.`}
+                        </h1>
+                        <p className="mt-2 text-muted-ink">
+                          <span className="font-mono">{formatArr(myOpen.reduce((t, a) => t + a.arr, 0), currency)}</span> a year in your hands.
+                          {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} customer gone quiet</button> after your last message.</>}
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2 min-[1180px]:hidden">
                     {FILTERS.map((f) => (
@@ -249,8 +290,8 @@ function Index() {
                     {visible.map((a, i) => {
                       const lvl = a.status === "handled" ? "calm" : a.level;
                       return (
+                        <div key={a.id} className="border-b last:border-b-0">
                         <button
-                          key={a.id}
                           aria-current={selected?.id === a.id ? "true" : undefined}
                           onClick={() => {
                             setSelectedId(a.id);
@@ -258,7 +299,7 @@ function Index() {
                               requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
                           }}
                           className={cn(
-                            "flex w-full gap-3 border-b border-l-[3px] px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
+                            "flex w-full gap-3 border-l-[3px] px-4 py-3 text-left transition-colors hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
                             selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
                           )}
                         >
@@ -281,6 +322,16 @@ function Index() {
                             </span>
                           </span>
                         </button>
+                        {role === "Marta" && a.status === "open" && a.owner === "Unassigned" && (
+                          <div className="flex items-center gap-2 px-4 pb-3 pl-12">
+                            <select aria-label={`Assign ${a.name}`} defaultValue="" onChange={(e) => assign(a.id, e.target.value)}
+                              className="rounded-md border bg-panel px-2 py-1 text-[13px]">
+                              <option value="" disabled>Assign to…</option>
+                              {csms.map((x) => <option key={x} value={x}>{x} ({g.workload[x] ?? 0} open)</option>)}
+                            </select>
+                          </div>
+                        )}
+                        </div>
                       );
                     })}
                   </div>
@@ -295,10 +346,10 @@ function Index() {
                         onNotRisk={() => notRisk(selected.id)}
                         onNotify={say}
                         emailConnected={emailConnected}
-                        onConnectEmail={() => { setEmailConnected(true); say("Email connected as marta@yourcompany.com."); }}
+                        onConnectEmail={() => { setEmailConnected(true); say(`Email connected as ${role.toLowerCase()}@yourcompany.com.`); }}
                         onSend={(channel, to, pdf) => {
-                          setOutreach((l) => [{ id: crypto.randomUUID(), accountId: selected.id, account: selected.name, channel, to, by: "Marta", when: "Just now", pdf, status: "waiting" }, ...l]);
-                          if (channel === "Email") handle(selected.id, `Marta emailed ${to} · waiting on reply`, `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.`);
+                          setOutreach((l) => [{ id: crypto.randomUUID(), accountId: selected.id, account: selected.name, channel, to, by: role, daysAgo: 0, pdf, status: "waiting" }, ...l]);
+                          if (channel === "Email") handle(selected.id, `${role} emailed ${to} · waiting on reply`, `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.`);
                           else say(`Sent to ${to} in Slack. Tracking the reply.`);
                         }}
                       />
