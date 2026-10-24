@@ -23,11 +23,8 @@ export function headline(list: Account[]) {
   const m = open.filter((a) => a.lastTouchDays >= 30 && a.owner === "Unassigned").length;
   if (n === 0) return { lead: "You're clear for this week.", tail: "Nothing needs you right now." };
   const lead = `${n} account${n === 1 ? "" : "s"} need${n === 1 ? "s" : ""} you this week.`;
-  const tail =
-    m === 0
-      ? ""
-      : `${m === n ? (n === 1 ? "Nobody" : "All of them") : `${m} of them`}${m === n && n === 1 ? " has looked at it in a month." : " nobody has looked at in a month."}`;
-  return { lead, tail: m === n && n > 1 ? `All ${m}, nobody has looked at in a month.` : tail };
+  const tail = m === 0 ? "" : `${m} of them nobody has looked at in a month.`;
+  return { lead, tail };
 }
 
 /** Under the radar = no owner and no CSM contact in 30+ days. */
