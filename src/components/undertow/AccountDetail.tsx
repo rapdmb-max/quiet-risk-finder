@@ -42,7 +42,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk }:
           <p className="text-[17px] font-bold leading-snug">{a.verdict}</p>
           {pointing > 1 && (
             <p className="mt-2">
-              {words[pointing] ?? pointing} signals, from {words[tools] ?? tools} tools, pointing the same way.
+              {words[pointing] ?? pointing} signals, from {(words[tools] ?? String(tools)).toLowerCase()} tools, pointing the same way.
             </p>
           )}
         </div>

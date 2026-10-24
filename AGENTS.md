@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Undertow is frontend-only: sample data lives in src/data/accounts.ts and brief rules (filters, counts, headline) in src/lib/brief.ts — keeps the prototype backend-free and the rules testable.
+- Product docs live in /docs (masterplan, tasks, rules, changelog); mark tasks and log changes there after each task group.
