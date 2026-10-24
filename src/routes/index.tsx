@@ -217,17 +217,16 @@ function Index() {
               </div>
             ) : (
               <>
-                <section className="flex flex-wrap items-end justify-between gap-6">
+                <AtAGlance />
+
+                <section className="mt-8 flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
-                    <p className="font-mono text-[13px] uppercase tracking-wider text-muted-ink">
+                    <p className="font-mono text-[13px] text-muted-ink">
                       {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
                     </p>
-                    <h1 className="headline mt-4">
-                      {h.lead} {h.tail && <em className="text-risk">{h.tail}</em>}
+                    <h1 className="headline mt-2">
+                      {h.lead} {h.tail && <span className="text-risk">{h.tail}</span>}
                     </h1>
-                    <p className="mt-4 text-[16px] text-muted-ink">
-                      Undertow connects support tickets, product usage, CRM and Slack, and tells you where to look. It never contacts a customer for you.
-                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2 min-[1180px]:hidden">
                     {FILTERS.map((f) => (
@@ -235,47 +234,55 @@ function Index() {
                         key={f.id}
                         onClick={() => changeFilter(f.id)}
                         aria-pressed={filter === f.id}
-                        className={cn("spring-press rounded-full border px-4 py-2 text-[15px] font-medium", filter === f.id ? "border-ink bg-ink text-ink-foreground" : "bg-panel hover:bg-soft")}
+                        className={cn("spring-press rounded-full border px-4 py-1.5", filter === f.id ? "border-ink bg-ink font-semibold text-ink-foreground" : "bg-panel hover:bg-soft")}
                       >
-                        {f.label} <span className="ml-1 font-mono text-[12px] opacity-70">{c[f.id]}</span>
+                        {f.label} <span className="ml-1 font-mono text-[13px] opacity-70">{c[f.id]}</span>
                       </button>
                     ))}
                   </div>
                 </section>
 
-                <div className="mt-10 grid gap-6 min-[900px]:grid-cols-12">
-                  {/* Pane 2: list */}
+                <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
+                  {/* Pane 2: list, one line per account like the Slack brief */}
                   <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
                     {visible.length === 0 && <p className="p-8 text-center text-muted-ink">Nothing here.</p>}
-                    {visible.map((a, i) => (
-                      <button
-                        key={a.id}
-                        aria-current={selected?.id === a.id ? "true" : undefined}
-                        onClick={() => {
-                          setSelectedId(a.id);
-                          if (window.matchMedia("(max-width: 899px)").matches)
-                            requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-                        }}
-                        className={cn(
-                          "flex w-full gap-4 border-b border-l-[3px] px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
-                          selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
-                        )}
-                      >
-                        <span className="pt-1 font-mono text-[13px] text-muted-ink">{String(i + 1).padStart(2, "0")}</span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-baseline justify-between gap-3">
-                            <span className="font-display text-[22px] leading-tight">{a.name}</span>
-                            <span className="font-mono text-[13px] text-muted-ink">{formatArr(a.arr, currency)}/yr</span>
+                    {visible.map((a, i) => {
+                      const lvl = a.status === "handled" ? "calm" : a.level;
+                      return (
+                        <button
+                          key={a.id}
+                          aria-current={selected?.id === a.id ? "true" : undefined}
+                          onClick={() => {
+                            setSelectedId(a.id);
+                            if (window.matchMedia("(max-width: 899px)").matches)
+                              requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                          }}
+                          className={cn(
+                            "flex w-full gap-3 border-b border-l-[3px] px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
+                            selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
+                          )}
+                        >
+                          <span className="w-5 pt-px font-mono text-[13px] text-muted-ink">{i + 1}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-baseline gap-2">
+                              <span aria-label={lvl} className={cn("size-2 shrink-0 self-center rounded-full", dot[lvl])} />
+                              <span className="truncate font-semibold">{a.name}</span>
+                              <span className="ml-auto shrink-0 font-mono text-[13px] text-muted-ink">{formatArr(a.arr, currency)}</span>
+                            </span>
+                            <span className="mt-0.5 block truncate text-[13px] text-muted-ink">
+                              {a.status === "handled" ? a.handledNote : a.reason}
+                            </span>
+                            <span className="mt-1 block text-[13px]">
+                              {a.underRadar && a.status === "open" ? (
+                                <span className="font-semibold">No owner · under the radar</span>
+                              ) : (
+                                <span className="text-muted-ink">{a.owner === "Unassigned" ? "No owner" : a.owner}</span>
+                              )}
+                            </span>
                           </span>
-                          <span className="mt-1 block text-muted-ink">{a.status === "handled" ? a.handledNote : a.reason}</span>
-                          <span className="mt-3 flex flex-wrap gap-2">
-                            <LevelTag level={a.status === "handled" ? "calm" : a.level} />
-                            {a.underRadar && a.status === "open" && <Tag solid>Under the radar</Tag>}
-                            <Tag>{a.owner === "Unassigned" ? "No owner" : a.owner}</Tag>
-                          </span>
-                        </span>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                   {/* Pane 3: detail */}
                   <div ref={detailRef} className="scroll-mt-20 min-[900px]:col-span-7">
@@ -286,6 +293,7 @@ function Index() {
                         onAssign={(o) => assign(selected.id, o)}
                         onReachedOut={() => reachedOut(selected.id)}
                         onNotRisk={() => notRisk(selected.id)}
+                        onNotify={say}
                       />
                     ) : (
                       <div className="rounded-lg border bg-panel p-10 text-center text-muted-ink">Nothing here.</div>
