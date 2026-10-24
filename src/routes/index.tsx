@@ -318,7 +318,7 @@ function Index() {
 
         {/* Command palette */}
         {palette && (
-          <div className="fixed inset-0 z-50 grid place-items-start justify-center bg-ink/30 px-4 pt-[15vh] backdrop-blur-sm" onClick={() => setPalette(false)}>
+          <div className="fixed inset-0 z-50 flex items-start justify-center bg-ink/30 px-4 pt-[15vh] backdrop-blur-sm" onClick={() => setPalette(false)}>
             <div role="dialog" aria-label="Search accounts" className="pane-enter w-full max-w-[560px] overflow-hidden rounded-xl border bg-panel toast-shadow" onClick={(e) => e.stopPropagation()}>
               <input
                 autoFocus

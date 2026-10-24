@@ -17,8 +17,11 @@ Single source of truth for project-wide decisions. Update immediately when a dec
 - Product name "Undertow"; persona "Marta"
 
 ## Design
-- Follow docs/design.md; never add colours or fonts
+- Follow docs/design.md; never add colours. Instrument Serif (display) added Oct 2026 by user choice for headlines and account names
 - Red/amber/green only for risk levels
 - "Under the radar" tag is solid ink, always
 - Money and dates in JetBrains Mono
 - Light and dark mode both supported
+- Editorial redesign (user-approved): 3-pane layout (sidebar · list · detail) from 1180px, spring motion, top "island" notifications instead of bottom toast
+- Keyboard: J/K or arrows move, E reached out, X not a risk, 1–3 filters, ⌘K search
+- Currency switcher €/$/£; ARR stored in euros, converted with fixed sample rates (USD 1.08, GBP 0.85)
