@@ -1,0 +1,24 @@
+# Project Rules & Decisions
+
+Single source of truth for project-wide decisions. Update immediately when a decision is made; if a decision overrides a previous one, edit the entry. One line each.
+
+## Product
+- Undertow never contacts customers. Suggestions are drafts for a human to send
+- It is not a dashboard: the brief is pushed (Slack preview is part of the prototype)
+- Every signal shows its source tool
+- Verdicts are one plain sentence; no risk scores or percentages of "health"
+
+## Architecture
+- Frontend only (React + TS + Tailwind); sample data in src/data/accounts.ts; no backend, no auth, no real integrations
+- Companies and people in sample data are fictional; show a small line: "Clickable prototype with sample data. Companies and people are fictional."
+
+## Naming
+- Components PascalCase; data fields camelCase
+- Product name "Undertow"; persona "Marta"
+
+## Design
+- Follow docs/design.md; never add colours or fonts
+- Red/amber/green only for risk levels
+- "Under the radar" tag is solid ink, always
+- Money and dates in JetBrains Mono
+- Light and dark mode both supported
