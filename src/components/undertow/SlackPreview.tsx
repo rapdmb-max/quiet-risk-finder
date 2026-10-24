@@ -1,3 +1,4 @@
+import { useCurrency } from "@/lib/currency";
 import { formatArr, type Account } from "@/data/accounts";
 import { Logo } from "./Bits";
 
@@ -48,7 +49,7 @@ export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind }
         <ol className="mt-3 list-decimal space-y-1.5 pl-6 leading-relaxed">
           {open.map((a) => (
             <li key={a.id}>
-              <strong>{a.name}</strong> ({formatArr(a.arr)}): {a.reason.charAt(0).toLowerCase() + a.reason.slice(1)}
+              <strong>{a.name}</strong> ({formatArr(a.arr, currency)}): {a.reason.charAt(0).toLowerCase() + a.reason.slice(1)}
               {a.owner === "Unassigned" && <em> · no owner</em>}
             </li>
           ))}
