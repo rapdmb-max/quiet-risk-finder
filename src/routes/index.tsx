@@ -6,6 +6,7 @@ import { CurrencyProvider } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Logo, Tag } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
+import { Glance } from "@/components/undertow/Glance";
 import { SlackPreview } from "@/components/undertow/SlackPreview";
 
 export const Route = createFileRoute("/")({
@@ -22,7 +23,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "brief" | "slack";
+type View = "glance" | "slack" | "brief";
+const VIEWS = [["glance", "At a glance"], ["slack", "How it reaches Marta"], ["brief", "Daily breakdown"]] as const;
 const FILTERS: { id: Filter; label: string; key: string }[] = [
   { id: "week", label: "This week", key: "1" },
   { id: "radar", label: "Under the radar", key: "2" },
@@ -30,7 +32,7 @@ const FILTERS: { id: Filter; label: string; key: string }[] = [
 ];
 
 function Index() {
-  const [view, setView] = useState<View>("brief");
+  const [view, setView] = useState<View>("glance");
   const [list, setList] = useState<Account[]>(seed);
   const [filter, setFilter] = useState<Filter>("week");
   const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
@@ -136,13 +138,13 @@ function Index() {
             <div className="flex items-center gap-2 text-[17px] font-semibold">
               <Logo /> Undertow
             </div>
-            <div role="tablist" aria-label="View" className="relative grid grid-cols-2 rounded-lg border bg-panel p-1">
+            <div role="tablist" aria-label="View" className="relative grid grid-cols-3 rounded-lg border bg-panel p-1">
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-md bg-ink transition-transform duration-500 ease-spring"
-                style={{ transform: view === "slack" ? "translateX(100%)" : "none" }}
+                className="absolute inset-y-1 left-1 w-[calc(33.333%-2.67px)] rounded-md bg-ink transition-transform duration-500 ease-spring"
+                style={{ transform: `translateX(${VIEWS.findIndex(([v]) => v === view) * 100}%)` }}
               />
-              {([["brief", "Weekly brief"], ["slack", "How it reaches Marta"]] as const).map(([id, label]) => (
+              {VIEWS.map(([id, label]) => (
                 <button
                   key={id}
                   role="tab"
@@ -205,21 +207,22 @@ function Index() {
           </aside>
 
           <main className="min-w-0">
-            {view === "slack" ? (
+            {view === "glance" ? (
+              <Glance list={sorted} onOpen={(id) => openInBrief(id)} onAssign={assign} />
+            ) : view === "slack" ? (
               <div className="pane-enter">
                 <SlackPreview
                   open={open}
                   onOpenBrief={() => openInBrief()}
                   onSeeWhy={(id) => openInBrief(id)}
                   onAssign={assign}
+                  onReachOut={(id) => reachedOut(id)}
                   onRemind={() => say("Okay. It'll be posted again tomorrow at 08:30.")}
                 />
               </div>
             ) : (
               <>
-                <AtAGlance />
-
-                <section className="mt-8 flex flex-wrap items-end justify-between gap-6">
+                <section className="flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
                     <p className="font-mono text-[13px] text-muted-ink">
                       {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
@@ -367,36 +370,3 @@ function Index() {
 
 const dot = { high: "bg-risk", rising: "bg-rising", calm: "bg-calm" } as const;
 
-const GLANCE = [
-  ["Weekly brief", "Every Monday, the accounts that need you, ranked by risk with one line on why."],
-  ["Under the radar", "At-risk accounts with no owner and no CSM contact in 30+ days."],
-  ["Account detail", "The verdict, the signals from each tool, and what happened in order."],
-  ["Act on it", "Assign an owner, post to Slack, open a draft email, or escalate. You send, never Undertow."],
-];
-
-function AtAGlance() {
-  const [open, setOpen] = useState(true);
-  return (
-    <section className="rounded-lg border bg-panel">
-      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center justify-between px-5 py-3 text-left">
-        <span className="font-semibold">At a glance</span>
-        <span className="text-[13px] text-muted-ink">{open ? "Hide" : "Show"}</span>
-      </button>
-      {open && (
-        <div className="border-t px-5 pb-5 pt-4">
-          <p className="max-w-[720px]">
-            Undertow reads your support tickets, product usage, CRM and Slack, and tells your team which quiet accounts are about to churn, before anyone shouts.
-          </p>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2 min-[1180px]:grid-cols-4">
-            {GLANCE.map(([t, d]) => (
-              <div key={t}>
-                <dt className="text-[13px] font-semibold">{t}</dt>
-                <dd className="mt-0.5 text-[13px] text-muted-ink">{d}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
-    </section>
-  );
-}

@@ -20,3 +20,4 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 - 2026-10-24 Security scan clean (no backend). Dependency advisories are in build tooling only, not reachable in this static prototype. Published publicly (Task 2.5)
 - Oct 24: Editorial redesign — serif headlines, 3-pane layout, keyboard shortcuts, ⌘K search, island notifications, spring motion, currency switcher.
 - Oct 24: 2-font type system, compact Slack-style list, At a glance section, action buttons (Slack, email draft, sponsor sync, escalate)
+- Oct 24: 3 tabs, At a glance with live numbers, Reach out in Slack message

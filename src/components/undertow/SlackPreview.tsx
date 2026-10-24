@@ -8,6 +8,7 @@ interface Props {
   onSeeWhy: (id: string) => void;
   onAssign: (id: string, owner: string) => void;
   onRemind: () => void;
+  onReachOut: (id: string) => void;
 }
 
 function Bot({ time, children }: { time: string; children: React.ReactNode }) {
@@ -18,7 +19,7 @@ function Bot({ time, children }: { time: string; children: React.ReactNode }) {
       </div>
       <div className="min-w-0 flex-1">
         <p>
-          <span className="font-bold">Undertow</span>
+          <span className="font-semibold">Undertow</span>
           <span className="ml-2 text-[13px] text-muted-ink">{time}</span>
         </p>
         {children}
@@ -30,28 +31,31 @@ function Bot({ time, children }: { time: string; children: React.ReactNode }) {
 const primary = "rounded-md bg-calm px-4 py-2 font-semibold text-ink-foreground hover:opacity-90";
 const outline = "rounded-md border px-4 py-2 font-semibold hover:bg-soft";
 
-export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind }: Props) {
+export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind, onReachOut }: Props) {
   const currency = useCurrency();
   const quiet = open.filter((a) => a.lastTouchDays >= 30).length;
   const pequod = open.find((a) => a.id === "pequod");
   return (
     <div className="mx-auto max-w-[760px] overflow-hidden rounded-lg border bg-panel">
       <div className="border-b px-6 py-4">
-        <span className="font-bold"># cs-team</span> <span className="text-muted-ink">· Slack</span>
+        <span className="font-semibold"># cs-team</span> <span className="text-muted-ink">· Slack</span>
       </div>
       <Bot time="Mon 08:30">
         <p className="mt-1 leading-relaxed">
           Good morning Marta.{" "}
-          <strong>
+          <span className="font-semibold">
             {open.length === 0 ? "Nothing needs you this week." : `${open.length} account${open.length === 1 ? "" : "s"} need${open.length === 1 ? "s" : ""} you this week.`}
-          </strong>{" "}
+          </span>{" "}
           {quiet > 0 && `${quiet} haven't had a CSM touch in 30+ days.`}
         </p>
         <ol className="mt-3 list-decimal space-y-1.5 pl-6 leading-relaxed">
           {open.map((a) => (
             <li key={a.id}>
-              <strong>{a.name}</strong> ({formatArr(a.arr, currency)}): {a.reason.charAt(0).toLowerCase() + a.reason.slice(1)}
-              {a.owner === "Unassigned" && <em> · no owner</em>}
+              <span className="font-semibold">{a.name}</span> ({formatArr(a.arr, currency)}): {a.reason.charAt(0).toLowerCase() + a.reason.slice(1)}
+              {a.owner === "Unassigned" ? " · no owner" : ` · ${a.owner}`}
+              <button onClick={() => onReachOut(a.id)} className="ml-2 rounded border px-2 py-0.5 text-[13px] font-semibold hover:bg-soft">
+                Reach out
+              </button>
             </li>
           ))}
         </ol>
@@ -65,7 +69,7 @@ export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind }
       </Bot>
       <Bot time="Wed 14:12">
         <p className="mt-1 leading-relaxed">
-          <strong>New: Pequod Analytics just moved to high risk.</strong> Their champion, Lena Ortiz, changed jobs on LinkedIn and usage fell 30% this week.
+          <span className="font-semibold">New: Pequod Analytics just moved to high risk.</span> Their champion, Lena Ortiz, changed jobs on LinkedIn and usage fell 30% this week.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button className={primary} onClick={() => onSeeWhy("pequod")}>See why</button>

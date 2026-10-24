@@ -187,3 +187,6 @@ export const accounts: Account[] = [
 ];
 
 export const levelRank: Record<Level, number> = { high: 0, rising: 1, calm: 2 };
+
+/** Sample snapshot of last Monday's brief, for the week-on-week trend. */
+export const LAST_WEEK = { open: 2, arrAtRisk: 61600, unowned: 1 };
