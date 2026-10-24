@@ -133,7 +133,7 @@ function Index() {
       <div className="min-h-screen">
         <header className="sticky top-0 z-20 border-b bg-bg/85 backdrop-blur-md">
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-4 px-5 py-3 sm:px-8">
-            <div className="flex items-center gap-2 font-display text-[26px] leading-none">
+            <div className="flex items-center gap-2 text-[17px] font-semibold">
               <Logo /> Undertow
             </div>
             <div role="tablist" aria-label="View" className="relative grid grid-cols-2 rounded-lg border bg-panel p-1">
@@ -148,17 +148,17 @@ function Index() {
                   role="tab"
                   aria-selected={view === id}
                   onClick={() => setView(id)}
-                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[14px] font-medium transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
+                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[13px] transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-3 text-[14px] text-muted-ink">
+            <div className="ml-auto flex items-center gap-3 text-[13px] text-muted-ink">
               <button onClick={() => { setPalette(true); setQuery(""); }} className="spring-press hidden items-center gap-2 rounded-md border bg-panel px-3 py-1.5 md:flex">
                 Search accounts <kbd className="kbd">⌘K</kbd>
               </button>
-              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[12px]">
+              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[13px]">
                 {(Object.keys(CURRENCIES) as Currency[]).map((cur) => (
                   <button
                     key={cur}
@@ -192,10 +192,10 @@ function Index() {
                   )}
                 >
                   {f.label}
-                  <span className="font-mono text-[12px] opacity-70">{c[f.id]}</span>
+                  <span className="font-mono text-[13px] opacity-70">{c[f.id]}</span>
                 </button>
               ))}
-              <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[12px] text-muted-ink">
+              <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[13px] text-muted-ink">
                 <p className="eyebrow mb-2">Shortcuts</p>
                 {[["J / K", "Move"], ["E", "Reached out"], ["X", "Not a risk"], ["1–3", "Filters"], ["⌘K", "Search"]].map(([k, l]) => (
                   <p key={k} className="flex justify-between"><span>{l}</span><span className="font-mono">{k}</span></p>
@@ -217,17 +217,16 @@ function Index() {
               </div>
             ) : (
               <>
-                <section className="flex flex-wrap items-end justify-between gap-6">
+                <AtAGlance />
+
+                <section className="mt-8 flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
-                    <p className="font-mono text-[13px] uppercase tracking-wider text-muted-ink">
+                    <p className="font-mono text-[13px] text-muted-ink">
                       {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
                     </p>
-                    <h1 className="headline mt-4">
-                      {h.lead} {h.tail && <em className="text-risk">{h.tail}</em>}
+                    <h1 className="headline mt-2">
+                      {h.lead} {h.tail && <span className="text-risk">{h.tail}</span>}
                     </h1>
-                    <p className="mt-4 text-[16px] text-muted-ink">
-                      Undertow connects support tickets, product usage, CRM and Slack, and tells you where to look. It never contacts a customer for you.
-                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2 min-[1180px]:hidden">
                     {FILTERS.map((f) => (
@@ -235,47 +234,55 @@ function Index() {
                         key={f.id}
                         onClick={() => changeFilter(f.id)}
                         aria-pressed={filter === f.id}
-                        className={cn("spring-press rounded-full border px-4 py-2 text-[15px] font-medium", filter === f.id ? "border-ink bg-ink text-ink-foreground" : "bg-panel hover:bg-soft")}
+                        className={cn("spring-press rounded-full border px-4 py-1.5", filter === f.id ? "border-ink bg-ink font-semibold text-ink-foreground" : "bg-panel hover:bg-soft")}
                       >
-                        {f.label} <span className="ml-1 font-mono text-[12px] opacity-70">{c[f.id]}</span>
+                        {f.label} <span className="ml-1 font-mono text-[13px] opacity-70">{c[f.id]}</span>
                       </button>
                     ))}
                   </div>
                 </section>
 
-                <div className="mt-10 grid gap-6 min-[900px]:grid-cols-12">
-                  {/* Pane 2: list */}
+                <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
+                  {/* Pane 2: list, one line per account like the Slack brief */}
                   <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
                     {visible.length === 0 && <p className="p-8 text-center text-muted-ink">Nothing here.</p>}
-                    {visible.map((a, i) => (
-                      <button
-                        key={a.id}
-                        aria-current={selected?.id === a.id ? "true" : undefined}
-                        onClick={() => {
-                          setSelectedId(a.id);
-                          if (window.matchMedia("(max-width: 899px)").matches)
-                            requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-                        }}
-                        className={cn(
-                          "flex w-full gap-4 border-b border-l-[3px] px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
-                          selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
-                        )}
-                      >
-                        <span className="pt-1 font-mono text-[13px] text-muted-ink">{String(i + 1).padStart(2, "0")}</span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-baseline justify-between gap-3">
-                            <span className="font-display text-[22px] leading-tight">{a.name}</span>
-                            <span className="font-mono text-[13px] text-muted-ink">{formatArr(a.arr, currency)}/yr</span>
+                    {visible.map((a, i) => {
+                      const lvl = a.status === "handled" ? "calm" : a.level;
+                      return (
+                        <button
+                          key={a.id}
+                          aria-current={selected?.id === a.id ? "true" : undefined}
+                          onClick={() => {
+                            setSelectedId(a.id);
+                            if (window.matchMedia("(max-width: 899px)").matches)
+                              requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                          }}
+                          className={cn(
+                            "flex w-full gap-3 border-b border-l-[3px] px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink",
+                            selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
+                          )}
+                        >
+                          <span className="w-5 pt-px font-mono text-[13px] text-muted-ink">{i + 1}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-baseline gap-2">
+                              <span aria-label={lvl} className={cn("size-2 shrink-0 self-center rounded-full", dot[lvl])} />
+                              <span className="truncate font-semibold">{a.name}</span>
+                              <span className="ml-auto shrink-0 font-mono text-[13px] text-muted-ink">{formatArr(a.arr, currency)}</span>
+                            </span>
+                            <span className="mt-0.5 block truncate text-[13px] text-muted-ink">
+                              {a.status === "handled" ? a.handledNote : a.reason}
+                            </span>
+                            <span className="mt-1 block text-[13px]">
+                              {a.underRadar && a.status === "open" ? (
+                                <span className="font-semibold">No owner · under the radar</span>
+                              ) : (
+                                <span className="text-muted-ink">{a.owner === "Unassigned" ? "No owner" : a.owner}</span>
+                              )}
+                            </span>
                           </span>
-                          <span className="mt-1 block text-muted-ink">{a.status === "handled" ? a.handledNote : a.reason}</span>
-                          <span className="mt-3 flex flex-wrap gap-2">
-                            <LevelTag level={a.status === "handled" ? "calm" : a.level} />
-                            {a.underRadar && a.status === "open" && <Tag solid>Under the radar</Tag>}
-                            <Tag>{a.owner === "Unassigned" ? "No owner" : a.owner}</Tag>
-                          </span>
-                        </span>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                   {/* Pane 3: detail */}
                   <div ref={detailRef} className="scroll-mt-20 min-[900px]:col-span-7">
@@ -286,6 +293,7 @@ function Index() {
                         onAssign={(o) => assign(selected.id, o)}
                         onReachedOut={() => reachedOut(selected.id)}
                         onNotRisk={() => notRisk(selected.id)}
+                        onNotify={say}
                       />
                     ) : (
                       <div className="rounded-lg border bg-panel p-10 text-center text-muted-ink">Nothing here.</div>
@@ -304,7 +312,7 @@ function Index() {
         <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div
             className={cn(
-              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[14px] font-medium text-ink-foreground",
+              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[13px] text-ink-foreground",
               toast ? "max-w-[92vw] rounded-2xl px-5 py-3 opacity-100" : "w-0 rounded-full px-0 py-3 opacity-0",
             )}
           >
@@ -329,14 +337,14 @@ function Index() {
                   if (e.key === "Escape") setPalette(false);
                 }}
                 placeholder="Jump to an account…"
-                className="w-full border-b bg-transparent px-5 py-4 text-[17px] outline-none placeholder:text-muted-ink"
+                className="w-full border-b bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-muted-ink"
               />
               <ul className="max-h-[320px] overflow-auto p-2">
                 {results.length === 0 && <li className="p-4 text-muted-ink">No account by that name.</li>}
                 {results.map((a) => (
                   <li key={a.id}>
                     <button onClick={() => pick(a)} className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left hover:bg-soft">
-                      <span className="font-display text-[19px]">{a.name}</span>
+                      <span className="font-semibold">{a.name}</span>
                       <LevelTag level={a.status === "handled" ? "calm" : a.level} />
                     </button>
                   </li>
@@ -355,4 +363,40 @@ function Index() {
     setSelectedId(a.id);
     setPalette(false);
   }
+}
+
+const dot = { high: "bg-risk", rising: "bg-rising", calm: "bg-calm" } as const;
+
+const GLANCE = [
+  ["Weekly brief", "Every Monday, the accounts that need you, ranked by risk with one line on why."],
+  ["Under the radar", "At-risk accounts with no owner and no CSM contact in 30+ days."],
+  ["Account detail", "The verdict, the signals from each tool, and what happened in order."],
+  ["Act on it", "Assign an owner, post to Slack, open a draft email, or escalate. You send, never Undertow."],
+];
+
+function AtAGlance() {
+  const [open, setOpen] = useState(true);
+  return (
+    <section className="rounded-lg border bg-panel">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center justify-between px-5 py-3 text-left">
+        <span className="font-semibold">At a glance</span>
+        <span className="text-[13px] text-muted-ink">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className="border-t px-5 pb-5 pt-4">
+          <p className="max-w-[720px]">
+            Undertow reads your support tickets, product usage, CRM and Slack, and tells your team which quiet accounts are about to churn, before anyone shouts.
+          </p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2 min-[1180px]:grid-cols-4">
+            {GLANCE.map(([t, d]) => (
+              <div key={t}>
+                <dt className="text-[13px] font-semibold">{t}</dt>
+                <dd className="mt-0.5 text-[13px] text-muted-ink">{d}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
+  );
 }

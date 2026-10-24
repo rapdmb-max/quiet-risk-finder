@@ -17,7 +17,7 @@ Single source of truth for project-wide decisions. Update immediately when a dec
 - Product name "Undertow"; persona "Marta"
 
 ## Design
-- Follow docs/design.md; never add colours. Instrument Serif (display) added Oct 2026 by user choice for headlines and account names
+- Follow docs/design.md; never add colours. Two fonts: Public Sans (400/600) + JetBrains Mono for data; scale 13/15/17/28; no italics
 - Red/amber/green only for risk levels
 - "Under the radar" tag is solid ink, always
 - Money and dates in JetBrains Mono
