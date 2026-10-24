@@ -148,7 +148,7 @@ function Index() {
                   role="tab"
                   aria-selected={view === id}
                   onClick={() => setView(id)}
-                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
+                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[13px] transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
                 >
                   {label}
                 </button>
@@ -312,7 +312,7 @@ function Index() {
         <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div
             className={cn(
-              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[13px] font-medium text-ink-foreground",
+              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[13px] text-ink-foreground",
               toast ? "max-w-[92vw] rounded-2xl px-5 py-3 opacity-100" : "w-0 rounded-full px-0 py-3 opacity-0",
             )}
           >
@@ -337,14 +337,14 @@ function Index() {
                   if (e.key === "Escape") setPalette(false);
                 }}
                 placeholder="Jump to an account…"
-                className="w-full border-b bg-transparent px-5 py-4 text-[17px] outline-none placeholder:text-muted-ink"
+                className="w-full border-b bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-muted-ink"
               />
               <ul className="max-h-[320px] overflow-auto p-2">
                 {results.length === 0 && <li className="p-4 text-muted-ink">No account by that name.</li>}
                 {results.map((a) => (
                   <li key={a.id}>
                     <button onClick={() => pick(a)} className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left hover:bg-soft">
-                      <span className="font-display text-[19px]">{a.name}</span>
+                      <span className="font-semibold">{a.name}</span>
                       <LevelTag level={a.status === "handled" ? "calm" : a.level} />
                     </button>
                   </li>
