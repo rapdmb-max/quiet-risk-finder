@@ -37,9 +37,18 @@ export const CSMS = ["Unassigned", "Marta", "Devon", "Aisha", "Tomás"];
 export const BRIEF_DATE = "Monday 27 Oct";
 export const ACCOUNTS_WATCHED = 128;
 
-export function formatArr(arr: number) {
-  const k = arr / 1000;
-  return `€${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+export type Currency = "EUR" | "USD" | "GBP";
+export const CURRENCIES: Record<Currency, { symbol: string; rate: number }> = {
+  EUR: { symbol: "€", rate: 1 },
+  USD: { symbol: "$", rate: 1.08 },
+  GBP: { symbol: "£", rate: 0.85 },
+};
+
+/** ARR is stored in euros; converted with fixed sample rates. */
+export function formatArr(arr: number, currency: Currency = "EUR") {
+  const { symbol, rate } = CURRENCIES[currency];
+  const k = Math.round((arr * rate) / 100) / 10;
+  return `${symbol}${Number.isInteger(k) ? k : k.toFixed(1)}k`;
 }
 
 export const accounts: Account[] = [

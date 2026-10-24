@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CSMS, formatArr, type Account } from "@/data/accounts";
+import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Sparkline, Tag, severityText } from "./Bits";
 
@@ -12,14 +13,15 @@ interface Props {
 
 export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk }: Props) {
   const [copied, setCopied] = useState(false);
+  const currency = useCurrency();
   const handled = a.status === "handled";
   const tools = new Set(a.signals.map((s) => s.source.split(" via ").pop())).size;
   const pointing = a.signals.filter((s) => s.severity !== "none").length;
 
   return (
-    <article aria-live="polite" className="rounded-lg border bg-panel p-6 sm:p-9">
+    <article aria-live="polite" className="pane-enter rounded-lg border bg-panel p-6 sm:p-9">
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-[26px] font-bold tracking-tight">{a.name}</h2>
+        <h2 className="font-display text-[38px] leading-none tracking-tight">{a.name}</h2>
         <div className="flex gap-2">
           {!handled && <LevelTag level={a.level} />}
           {handled && <LevelTag level="calm" />}
@@ -27,7 +29,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk }:
         </div>
       </header>
       <p className="mt-1 text-muted-ink">
-        <span className="font-mono text-[14px]">{formatArr(a.arr)}/yr</span> · last CSM touch{" "}
+        <span className="font-mono text-[14px]">{formatArr(a.arr, currency)}/yr</span> · last CSM touch{" "}
         <span className="font-mono text-[14px]">{a.lastTouchDays} days ago</span> · owner:{" "}
         {a.owner === "Unassigned" ? "nobody" : a.owner}
       </p>
@@ -120,11 +122,11 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk }:
               </select>
             </label>
             <div className="ml-auto flex gap-2">
-              <button onClick={onNotRisk} className="rounded-md border px-4 py-2 font-medium hover:bg-soft">
-                Not a real risk
+              <button onClick={onNotRisk} className="spring-press rounded-md border px-4 py-2 font-medium hover:bg-soft">
+                Not a real risk <kbd className="kbd">X</kbd>
               </button>
-              <button onClick={onReachedOut} className="rounded-md bg-ink px-4 py-2 font-semibold text-ink-foreground hover:opacity-90">
-                I've reached out
+              <button onClick={onReachedOut} className="rounded-md bg-ink px-4 py-2 font-semibold text-ink-foreground hover:opacity-90 spring-press">
+                I've reached out <kbd className="kbd kbd-inverse">E</kbd>
               </button>
             </div>
           </div>
