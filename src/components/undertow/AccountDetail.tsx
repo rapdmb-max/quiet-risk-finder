@@ -10,26 +10,22 @@ interface Props {
   onReachedOut: () => void;
   onNotRisk: () => void;
   onNotify: (msg: string) => void;
+  emailConnected: boolean;
+  onConnectEmail: () => void;
+  onSend: (channel: "Email" | "Slack", to: string, pdf: boolean) => void;
 }
 
-export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, onNotify }: Props) {
+export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, onNotify, emailConnected, onConnectEmail, onSend }: Props) {
   const [copied, setCopied] = useState(false);
+  const [channel, setChannel] = useState<"Email" | "Slack">("Email");
+  const [pdf, setPdf] = useState(true);
+  const [draft, setDraft] = useState(a.suggestion);
   const currency = useCurrency();
   const handled = a.status === "handled";
   const tools = new Set(a.signals.map((s) => s.source.split(" via ").pop())).size;
   const pointing = a.signals.filter((s) => s.severity !== "none").length;
-  const ticketTrouble = a.signals.some((s) => s.source === "Intercom" && s.severity === "bad");
   const firstName = a.suggestion.match(/^Hi (\w+)/)?.[1];
-  const mailto = `mailto:?subject=${encodeURIComponent(`${a.name}: checking in`)}&body=${encodeURIComponent(a.suggestion)}`;
 
-  const ctas = [
-    { label: "Post to Slack", hint: `#cs-team gets the verdict and signals`, run: () => onNotify(`Posted ${a.name} to #cs-team.`) },
-    { label: "Open draft in email", hint: "Pre-filled, you review and send", href: mailto },
-    { label: "Schedule sponsor sync", hint: `Agenda from the ${pointing} signals`, run: () => onNotify(`Sync with ${firstName ?? "their sponsor"} added to your calendar as a draft.`) },
-    ...(ticketTrouble
-      ? [{ label: "Escalate to engineering", hint: "Tickets attached, flagged as renewal risk", run: () => onNotify(`Escalated ${a.name}'s tickets to engineering.`) }]
-      : []),
-  ];
 
   return (
     <article aria-live="polite" className="pane-enter rounded-lg border bg-panel p-6 sm:p-8">
@@ -59,28 +55,6 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
             </p>
           )}
         </div>
-      )}
-
-      {!handled && (
-        <section className="mt-8">
-          <h3 className="eyebrow">Act on it</h3>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {ctas.map((c) => {
-              const inner = (
-                <>
-                  <span className="block font-semibold">{c.label}</span>
-                  <span className="block text-[13px] text-muted-ink">{c.hint}</span>
-                </>
-              );
-              const cls = "spring-press block rounded-md border px-4 py-3 text-left hover:bg-soft";
-              return "href" in c && c.href ? (
-                <a key={c.label} href={c.href} className={cls}>{inner}</a>
-              ) : (
-                <button key={c.label} onClick={c.run} className={cls}>{inner}</button>
-              );
-            })}
-          </div>
-        </section>
       )}
 
       <section className="mt-8">
@@ -118,21 +92,51 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
       {!handled && (
         <>
           <section className="mt-8">
-            <h3 className="eyebrow">Suggested message</h3>
-            <div className="mt-3 rounded-lg border border-dashed p-5">
-              <p className="leading-relaxed">{a.suggestion}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="eyebrow">Reach out</h3>
+              <div role="radiogroup" aria-label="Channel" className="flex rounded-md border p-0.5 text-[13px]">
+                {(["Email", "Slack"] as const).map((c) => (
+                  <button key={c} role="radio" aria-checked={channel === c} onClick={() => setChannel(c)}
+                    className={cn("rounded px-3 py-1", channel === c ? "bg-ink font-semibold text-ink-foreground" : "text-muted-ink hover:text-ink")}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 rounded-lg border p-5">
+              <p className="text-[13px] text-muted-ink">
+                To: {channel === "Email" ? `${firstName ?? "contact"} at ${a.name}` : a.owner === "Unassigned" ? "#cs-team (nudge the team to pick it up)" : `${a.owner} in Slack (nudge the owner)`}
+              </p>
+              <textarea
+                aria-label="Message"
+                value={channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`}
+                onChange={(e) => channel === "Email" && setDraft(e.target.value)}
+                readOnly={channel === "Slack"}
+                rows={4}
+                className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
+              />
+              {channel === "Email" && emailConnected && (
+                <label className="mt-3 flex items-center gap-2 text-[13px]">
+                  <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
+                  Attach account summary PDF (<span className="font-mono">{formatArr(a.arr, currency)}/yr</span>, usage, tickets)
+                </label>
+              )}
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[13px] text-muted-ink">A draft for you to edit and send yourself. Undertow never contacts customers.</p>
-                <button
-                  onClick={() => {
-                    navigator.clipboard?.writeText(a.suggestion);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1500);
-                  }}
-                  className="rounded-md border px-3 py-1.5 text-[13px] hover:bg-soft"
-                >
-                  {copied ? "Copied" : "Copy draft"}
-                </button>
+                <p className="text-[13px] text-muted-ink">You review and send. Undertow never contacts customers on its own.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => { navigator.clipboard?.writeText(draft); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                    className="rounded-md border px-3 py-1.5 text-[13px] hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
+                  {channel === "Email" && !emailConnected ? (
+                    <button onClick={onConnectEmail} className="spring-press rounded-md bg-ink px-3 py-1.5 text-[13px] font-semibold text-ink-foreground">Connect email</button>
+                  ) : (
+                    <button
+                      onClick={() => onSend(channel, channel === "Email" ? (firstName ?? "contact") : a.owner === "Unassigned" ? "#cs-team" : a.owner, channel === "Email" && pdf)}
+                      className="spring-press rounded-md bg-ink px-3 py-1.5 text-[13px] font-semibold text-ink-foreground"
+                    >
+                      {channel === "Email" ? "Send email" : "Send in Slack"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </section>

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { LevelTag, Logo, Tag } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Glance } from "@/components/undertow/Glance";
-import { SlackPreview } from "@/components/undertow/SlackPreview";
+import { SEED_OUTREACH, Tracker, type Outreach } from "@/components/undertow/Tracker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,8 +23,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "glance" | "slack" | "brief";
-const VIEWS = [["glance", "At a glance"], ["slack", "How it reaches Marta"], ["brief", "Daily breakdown"]] as const;
+type View = "glance" | "brief" | "tracker";
+const VIEWS = [["glance", "At a glance"], ["brief", "Daily breakdown"], ["tracker", "Waiting on replies"]] as const;
 const FILTERS: { id: Filter; label: string; key: string }[] = [
   { id: "week", label: "This week", key: "1" },
   { id: "radar", label: "Under the radar", key: "2" },
@@ -39,6 +39,8 @@ function Index() {
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [toast, setToast] = useState<string | null>(null);
   const [palette, setPalette] = useState(false);
+  const [emailConnected, setEmailConnected] = useState(false);
+  const [outreach, setOutreach] = useState<Outreach[]>(SEED_OUTREACH);
   const [query, setQuery] = useState("");
   const detailRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -209,17 +211,12 @@ function Index() {
           <main className="min-w-0">
             {view === "glance" ? (
               <Glance list={sorted} onOpen={(id) => openInBrief(id)} onAssign={assign} />
-            ) : view === "slack" ? (
-              <div className="pane-enter">
-                <SlackPreview
-                  open={open}
-                  onOpenBrief={() => openInBrief()}
-                  onSeeWhy={(id) => openInBrief(id)}
-                  onAssign={assign}
-                  onReachOut={(id) => reachedOut(id)}
-                  onRemind={() => say("Okay. It'll be posted again tomorrow at 08:30.")}
-                />
-              </div>
+            ) : view === "tracker" ? (
+              <Tracker
+                items={outreach}
+                onReplied={(id) => { setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))); say("Marked as replied."); }}
+                onOpen={(id) => { const a = list.find((x) => x.id === id); setView("brief"); setFilter(a?.status === "handled" ? "handled" : "week"); setSelectedId(id); }}
+              />
             ) : (
               <>
                 <section className="flex flex-wrap items-end justify-between gap-6">
@@ -297,6 +294,13 @@ function Index() {
                         onReachedOut={() => reachedOut(selected.id)}
                         onNotRisk={() => notRisk(selected.id)}
                         onNotify={say}
+                        emailConnected={emailConnected}
+                        onConnectEmail={() => { setEmailConnected(true); say("Email connected as marta@yourcompany.com."); }}
+                        onSend={(channel, to, pdf) => {
+                          setOutreach((l) => [{ id: crypto.randomUUID(), accountId: selected.id, account: selected.name, channel, to, by: "Marta", when: "Just now", pdf, status: "waiting" }, ...l]);
+                          if (channel === "Email") handle(selected.id, `Marta emailed ${to} · waiting on reply`, `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.`);
+                          else say(`Sent to ${to} in Slack. Tracking the reply.`);
+                        }}
                       />
                     ) : (
                       <div className="rounded-lg border bg-panel p-10 text-center text-muted-ink">Nothing here.</div>
