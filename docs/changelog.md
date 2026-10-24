@@ -14,3 +14,5 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 ### Added
 - 2026-10-24 Phase 1 complete: design tokens (light/dark), sample data, top bar with view toggle, computed headline and filter tabs, ranked account list, account detail (verdict, signals with sparklines, timeline, draft suggestion), owner/handled/not-a-risk actions with toasts, Slack preview, prototype footer (Tasks 1.1–1.9)
   Files: src/styles.css, src/data/accounts.ts, src/lib/brief.ts, src/lib/brief.test.ts, src/components/undertow/*, src/routes/index.tsx, src/routes/__root.tsx
+- 2026-10-24 Phase 2 polish: tap a row on mobile scrolls to detail, dark mode follows system setting, "Nothing here." empty states, keyboard focus rings and live region on detail (Tasks 2.1–2.4)
+  Files: src/routes/index.tsx
