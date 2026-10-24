@@ -364,3 +364,39 @@ function Index() {
     setPalette(false);
   }
 }
+
+const dot = { high: "bg-risk", rising: "bg-rising", calm: "bg-calm" } as const;
+
+const GLANCE = [
+  ["Weekly brief", "Every Monday, the accounts that need you, ranked by risk with one line on why."],
+  ["Under the radar", "At-risk accounts with no owner and no CSM contact in 30+ days."],
+  ["Account detail", "The verdict, the signals from each tool, and what happened in order."],
+  ["Act on it", "Assign an owner, post to Slack, open a draft email, or escalate. You send, never Undertow."],
+];
+
+function AtAGlance() {
+  const [open, setOpen] = useState(true);
+  return (
+    <section className="rounded-lg border bg-panel">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center justify-between px-5 py-3 text-left">
+        <span className="font-semibold">At a glance</span>
+        <span className="text-[13px] text-muted-ink">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className="border-t px-5 pb-5 pt-4">
+          <p className="max-w-[720px]">
+            Undertow reads your support tickets, product usage, CRM and Slack, and tells your team which quiet accounts are about to churn, before anyone shouts.
+          </p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2 min-[1180px]:grid-cols-4">
+            {GLANCE.map(([t, d]) => (
+              <div key={t}>
+                <dt className="text-[13px] font-semibold">{t}</dt>
+                <dd className="mt-0.5 text-[13px] text-muted-ink">{d}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
+  );
+}
