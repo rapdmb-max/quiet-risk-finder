@@ -133,7 +133,7 @@ function Index() {
       <div className="min-h-screen">
         <header className="sticky top-0 z-20 border-b bg-bg/85 backdrop-blur-md">
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-4 px-5 py-3 sm:px-8">
-            <div className="flex items-center gap-2 font-display text-[26px] leading-none">
+            <div className="flex items-center gap-2 text-[17px] font-semibold">
               <Logo /> Undertow
             </div>
             <div role="tablist" aria-label="View" className="relative grid grid-cols-2 rounded-lg border bg-panel p-1">
