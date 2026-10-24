@@ -105,12 +105,59 @@
 }
 
 @utility headline {
-  font-size: 34px;
-  line-height: 1.15;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-family: var(--font-display);
+  font-size: 54px;
+  line-height: 1.02;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 @utility toast-shadow {
   box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.35);
+}
+
+/* Editorial luxury + native motion */
+@theme {
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@utility spring-press {
+  transition: transform 220ms var(--ease-spring), background-color 150ms, opacity 150ms;
+  &:active { transform: scale(0.96); }
+}
+
+@utility kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  margin-left: 0.35rem;
+  border: 1px solid var(--color-line);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-muted-ink);
+  vertical-align: middle;
+}
+@utility kbd-inverse {
+  border-color: color-mix(in oklab, var(--panel) 35%, transparent);
+  color: var(--panel);
+}
+
+@utility pane-enter {
+  animation: pane-in 420ms var(--ease-spring);
+}
+@keyframes pane-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility island {
+  transition: width 420ms var(--ease-spring), border-radius 420ms var(--ease-spring), padding 420ms var(--ease-spring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }

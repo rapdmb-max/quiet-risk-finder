@@ -31,6 +31,7 @@ const primary = "rounded-md bg-calm px-4 py-2 font-semibold text-ink-foreground 
 const outline = "rounded-md border px-4 py-2 font-semibold hover:bg-soft";
 
 export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind }: Props) {
+  const currency = useCurrency();
   const quiet = open.filter((a) => a.lastTouchDays >= 30).length;
   const pequod = open.find((a) => a.id === "pequod");
   return (

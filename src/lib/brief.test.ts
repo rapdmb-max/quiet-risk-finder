@@ -20,3 +20,10 @@ describe("brief rules", () => {
     expect(headline([]).lead).toBe("You're clear for this week.");
   });
 });
+
+import { formatArr } from "@/data/accounts";
+describe("currency switcher", () => {
+  it("shows euros by default", () => expect(formatArr(18000)).toBe("€18k"));
+  it("converts to dollars at 1.08", () => expect(formatArr(18000, "USD")).toBe("$19.4k"));
+  it("converts to pounds at 0.85", () => expect(formatArr(18000, "GBP")).toBe("£15.3k"));
+});
