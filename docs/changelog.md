@@ -16,3 +16,5 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
   Files: src/styles.css, src/data/accounts.ts, src/lib/brief.ts, src/lib/brief.test.ts, src/components/undertow/*, src/routes/index.tsx, src/routes/__root.tsx
 - 2026-10-24 Phase 2 polish: tap a row on mobile scrolls to detail, dark mode follows system setting, "Nothing here." empty states, keyboard focus rings and live region on detail (Tasks 2.1–2.4)
   Files: src/routes/index.tsx
+### Security
+- 2026-10-24 Security scan clean (no backend). Dependency advisories are in build tooling only, not reachable in this static prototype. Published publicly (Task 2.5)
