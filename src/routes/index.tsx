@@ -148,17 +148,17 @@ function Index() {
                   role="tab"
                   aria-selected={view === id}
                   onClick={() => setView(id)}
-                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[14px] font-medium transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
+                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-3 text-[14px] text-muted-ink">
+            <div className="ml-auto flex items-center gap-3 text-[13px] text-muted-ink">
               <button onClick={() => { setPalette(true); setQuery(""); }} className="spring-press hidden items-center gap-2 rounded-md border bg-panel px-3 py-1.5 md:flex">
                 Search accounts <kbd className="kbd">⌘K</kbd>
               </button>
-              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[12px]">
+              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[13px]">
                 {(Object.keys(CURRENCIES) as Currency[]).map((cur) => (
                   <button
                     key={cur}
@@ -192,10 +192,10 @@ function Index() {
                   )}
                 >
                   {f.label}
-                  <span className="font-mono text-[12px] opacity-70">{c[f.id]}</span>
+                  <span className="font-mono text-[13px] opacity-70">{c[f.id]}</span>
                 </button>
               ))}
-              <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[12px] text-muted-ink">
+              <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[13px] text-muted-ink">
                 <p className="eyebrow mb-2">Shortcuts</p>
                 {[["J / K", "Move"], ["E", "Reached out"], ["X", "Not a risk"], ["1–3", "Filters"], ["⌘K", "Search"]].map(([k, l]) => (
                   <p key={k} className="flex justify-between"><span>{l}</span><span className="font-mono">{k}</span></p>
@@ -312,7 +312,7 @@ function Index() {
         <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div
             className={cn(
-              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[14px] font-medium text-ink-foreground",
+              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[13px] font-medium text-ink-foreground",
               toast ? "max-w-[92vw] rounded-2xl px-5 py-3 opacity-100" : "w-0 rounded-full px-0 py-3 opacity-0",
             )}
           >

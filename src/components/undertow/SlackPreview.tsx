@@ -55,7 +55,7 @@ export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind }
             </li>
           ))}
         </ol>
-        <p className="mt-3 text-[14px] text-muted-ink">
+        <p className="mt-3 text-[13px] text-muted-ink">
           Why these: signals from Intercom, product usage, HubSpot and Slack, compared with each account's own normal.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
