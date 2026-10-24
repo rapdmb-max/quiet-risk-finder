@@ -41,3 +41,14 @@ describe("glance", () => {
     expect(glance(sample).workload).toEqual({ Aisha: 1, Devon: 1 });
   });
 });
+
+import { isStalled, scopeFor } from "./brief";
+describe("roles and outreach", () => {
+  it("head of CS sees all accounts", () => expect(scopeFor(sample, "Marta").length).toBe(sample.length));
+  it("CSM sees only accounts they own", () => expect(scopeFor(sample, "Devon").every((a) => a.owner === "Devon")).toBe(true));
+  it("waiting 5 days is stalled, 4 is not", () => {
+    expect(isStalled({ status: "waiting", daysAgo: 5 })).toBe(true);
+    expect(isStalled({ status: "waiting", daysAgo: 4 })).toBe(false);
+    expect(isStalled({ status: "replied", daysAgo: 9 })).toBe(false);
+  });
+});
