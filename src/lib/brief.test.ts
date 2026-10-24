@@ -27,3 +27,17 @@ describe("currency switcher", () => {
   it("converts to dollars at 1.08", () => expect(formatArr(18000, "USD")).toBe("$19.4k"));
   it("converts to pounds at 0.85", () => expect(formatArr(18000, "GBP")).toBe("£15.3k"));
 });
+
+import { glance } from "./brief";
+import { accounts as sample } from "@/data/accounts";
+describe("glance", () => {
+  it("revenue at risk sums open accounts only", () => {
+    expect(glance(sample).arrAtRisk).toBe(18000 + 7800 + 52000 + 9600);
+  });
+  it("counts accounts with no owner", () => {
+    expect(glance(sample).unowned.map((a) => a.id)).toEqual(["brightline", "pequod"]);
+  });
+  it("workload counts open accounts per CSM, excluding handled", () => {
+    expect(glance(sample).workload).toEqual({ Aisha: 1, Devon: 1 });
+  });
+});

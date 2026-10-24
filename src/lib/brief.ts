@@ -31,3 +31,17 @@ export function headline(list: Account[]) {
 export function isUnderRadar(a: Pick<Account, "owner" | "lastTouchDays">) {
   return a.owner === "Unassigned" && a.lastTouchDays >= 30;
 }
+
+/** Numbers for the At a glance page. Revenue at risk = ARR of open (not handled) flagged accounts. */
+export function glance(list: Account[]) {
+  const open = filterAccounts(list, "week");
+  const workload: Record<string, number> = {};
+  for (const a of open) if (a.owner !== "Unassigned") workload[a.owner] = (workload[a.owner] ?? 0) + 1;
+  return {
+    open: open.length,
+    high: open.filter((a) => a.level === "high").length,
+    arrAtRisk: open.reduce((s, a) => s + a.arr, 0),
+    unowned: open.filter((a) => a.owner === "Unassigned"),
+    workload,
+  };
+}
