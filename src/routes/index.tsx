@@ -111,10 +111,10 @@ function Index() {
       const idx = s.visible.findIndex((a) => a.id === s.selected?.id);
       if (e.key === "j" || e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedId(s.visible[Math.min(idx + 1, s.visible.length - 1)].id);
+        setSelectedId(s.visible[Math.min(idx + 1, s.visible.length - 1)]!.id);
       } else if (e.key === "k" || e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedId(s.visible[Math.max(idx - 1, 0)].id);
+        setSelectedId(s.visible[Math.max(idx - 1, 0)]!.id);
       } else if (e.key === "e" && s.selected?.status === "open") actionsRef.current.reachedOut(s.selected.id);
       else if (e.key === "x" && s.selected?.status === "open") actionsRef.current.notRisk(s.selected.id);
     };
