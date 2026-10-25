@@ -23,7 +23,7 @@ export const actionSchema = z.discriminatedUnion("type", [
 ]);
 export type Action = z.infer<typeof actionSchema>;
 
-export type EventType = "assigned" | "nudged" | "reached_out" | "not_a_risk" | "reopened" | "emailed" | "messaged" | "replied";
+export type EventType = "assigned" | "reached_out" | "not_a_risk" | "reopened" | "emailed" | "messaged" | "replied";
 
 export interface AccountPatch {
   owner?: string;
@@ -50,7 +50,7 @@ export function decide(account: Account, action: Exclude<Action, { type: "replie
   switch (action.type) {
     case "nudge": {
       if (account.owner === "Unassigned") return deny(422, "Assign an owner before nudging them.");
-      return { ok: true, patch: null, event: { type: "nudged", detail: `nudged ${account.owner} in Slack` } };
+      return { ok: true, patch: null, event: { type: "messaged", detail: `nudged ${account.owner} in Slack` } };
     }
     case "assign": {
       if (role !== "Marta") return deny(403, "Only the Head of CS assigns owners.");
