@@ -112,6 +112,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_provider_access_state: {
+        Row: {
+          blocked_at: string
+          message: string
+          model: string
+        }
+        Insert: {
+          blocked_at?: string
+          message: string
+          model: string
+        }
+        Update: {
+          blocked_at?: string
+          message?: string
+          model?: string
+        }
+        Relationships: []
+      }
       outreach: {
         Row: {
           account_id: string
@@ -152,24 +170,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      ai_provider_access_state: {
-        Row: {
-          blocked_at: string
-          message: string
-          model: string
-        }
-        Insert: {
-          blocked_at?: string
-          message: string
-          model: string
-        }
-        Update: {
-          blocked_at?: string
-          message?: string
-          model?: string
-        }
-        Relationships: []
       }
     }
     Views: {

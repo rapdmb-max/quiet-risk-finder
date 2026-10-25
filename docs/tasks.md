@@ -33,4 +33,6 @@
 - [x] 4.5 Actions persist with optimistic update, rollback and error toast; conflict (409) refreshes
 - [x] 4.6 Activity list per account, Reopen, Reset sample week
 - [x] 4.7 Claude drafts read the saved account, not the static sample
-- [ ] 4.8 Apply migration in Lovable Cloud, publish, run the acceptance checks in the PR
+- [x] 4.8a Apply migration in Lovable Cloud; verify five sample accounts and three outreach records on first load and reload; 20 existing rules/brief tests pass
+- [x] 4.8b Request publication of the verified app
+- [ ] 4.8c Verify completed deployment and any additional PR acceptance checks (deployment pending; PR checks not supplied)

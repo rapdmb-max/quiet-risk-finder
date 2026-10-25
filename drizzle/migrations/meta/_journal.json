@@ -15,6 +15,13 @@
       "when": 1792922400000,
       "tag": "0001_undertow_persistence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792922400001,
+      "tag": "0002_apply_pending_undertow",
+      "breakpoints": true
     }
   ]
 }

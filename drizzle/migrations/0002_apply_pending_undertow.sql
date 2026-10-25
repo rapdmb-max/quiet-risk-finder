@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.ai_provider_access_state IS 'Server-only terminal provider denials. No client grants or policies. Clear only after provider access is restored.';
