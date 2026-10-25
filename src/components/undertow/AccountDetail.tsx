@@ -160,7 +160,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
             <div role="radiogroup" aria-label="Playbook" className="mt-3 flex flex-wrap items-center gap-2 text-meta">
               <span className="text-muted-ink">Playbook</span>
               {PLAYBOOKS.map((p) => (
-                <button key={p} role="radio" aria-checked={playbook === p} onClick={() => setPlaybook(p)}
+                <button key={p} role="radio" aria-checked={playbook === p} onClick={() => choosePlaybook(p)}
                   className={cn("rounded-md border px-2.5 py-1", playbook === p ? "border-ink font-semibold" : "text-muted-ink hover:text-ink")}>
                   {PLAYBOOK_LABELS[p]}
                 </button>
@@ -170,39 +170,51 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               <p className="text-meta text-muted-ink">
                 To: {channel === "Email" ? `${firstName ?? "contact"} at ${a.name}` : a.owner === "Unassigned" ? "#cs-team (nudge the team to pick it up)" : `${a.owner} in Slack (nudge the owner)`}
               </p>
-              {(channel === "Email" ? aiEmail : aiSlack) && <div className="mt-2"><AiBadge edited /></div>}
-              <textarea
-                aria-label="Message"
-                value={channel === "Email" ? draft : slack}
-                onChange={(e) => channel === "Email" ? setDraft(e.target.value) : setSlack(e.target.value)}
-                rows={channel === "Email" ? 8 : 4}
-                className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
-              />
+              {showBox ? (
+                <>
+                  {(channel === "Email" ? aiEmail : aiSlack) && <div className="mt-2"><AiBadge edited /></div>}
+                  <textarea
+                    aria-label="Message"
+                    value={message}
+                    onChange={(e) => channel === "Email" ? setDraft(e.target.value) : setSlack(e.target.value)}
+                    rows={channel === "Email" ? 8 : 4}
+                    className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
+                  />
+                </>
+              ) : (
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-meta text-muted-ink">Pick a playbook, then draft with Claude. The message appears here for you to review before sending.</p>
+                  <button onClick={() => setManual(channel)} className="shrink-0 text-meta text-muted-ink underline underline-offset-4 hover:text-ink">Write it myself</button>
+                </div>
+              )}
               {channel === "Email"
-                ? <ClaudeDraft key={`email-${playbook}`} accountId={a.id} kind="email" playbook={playbook} onApply={(text) => { setDraft(formatEmail(text)); setAiEmail(true); }} />
-                : <ClaudeDraft key={`slack-${playbook}`} accountId={a.id} kind="slack" playbook={playbook} onApply={(text) => { setSlack(text); setAiSlack(true); }} />}
-              {channel === "Email" && emailConnected && (
+                ? <ClaudeDraft key={`email-${playbook}`} accountId={a.id} kind="email" playbook={playbook} live onBusy={setBusy} onApply={(text) => { setDraft(formatEmail(text)); setAiEmail(true); }} />
+                : <ClaudeDraft key={`slack-${playbook}`} accountId={a.id} kind="slack" playbook={playbook} live onBusy={setBusy} onApply={(text) => { setSlack(text); setAiSlack(true); }} />}
+              {showBox && channel === "Email" && emailConnected && (
                 <label className="mt-3 flex items-center gap-2 text-meta">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
                   Attach account summary PDF (<span className="font-mono">{formatArr(a.arr, currency)}/yr</span>, usage, tickets)
                 </label>
               )}
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-                <div className="flex gap-2">
-                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : slack); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                    className="rounded-md border px-3 py-1.5 text-meta hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
-                  {channel === "Email" && !emailConnected ? (
-                    <button onClick={onConnectEmail} className="cta-ai rounded-md px-3 py-1.5">Connect email</button>
-                  ) : (
-                    <button
-                      onClick={() => onSend(channel, channel === "Email" ? (firstName ?? "contact") : a.owner === "Unassigned" ? "#cs-team" : a.owner, channel === "Email" && pdf)}
-                      className="cta-ai rounded-md px-3 py-1.5"
-                    >
-                      {channel === "Email" ? "Send email" : "Send in Slack"}
-                    </button>
-                  )}
+              {showBox && (
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+                  <div className="flex gap-2">
+                    <button onClick={() => { navigator.clipboard?.writeText(message); setCopied(true); setTimeout(() => setCopied(false), 1500); }} disabled={!canSend}
+                      className="disabled:opacity-50 rounded-md border px-3 py-1.5 text-meta hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
+                    {channel === "Email" && !emailConnected ? (
+                      <button onClick={onConnectEmail} className="cta-ai rounded-md px-3 py-1.5">Connect email</button>
+                    ) : (
+                      <button
+                        onClick={() => onSend(channel, channel === "Email" ? (firstName ?? "contact") : a.owner === "Unassigned" ? "#cs-team" : a.owner, channel === "Email" && pdf)}
+                        disabled={!canSend}
+                        className="cta-ai rounded-md px-3 py-1.5"
+                      >
+                        {channel === "Email" ? "Send email" : "Send in Slack"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
 
