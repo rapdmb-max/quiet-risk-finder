@@ -14,3 +14,4 @@
 - [x] Verify summary rules, both demo roles, account detail round-trip and reload persistence; update docs.
 - [x] Format customer email drafts into paragraphs and label recipients Email Customer / Slack CSM.
 - [x] Remove the inline demo-delivery sentence from Reach out.
+- [ ] Add multi-select Portfolio filtering and sorting; test combined selections.
