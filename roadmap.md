@@ -12,3 +12,4 @@
 - [ ] Open Portfolio by default with compact summaries and a searchable, sortable account ledger.
 - [ ] Expand to 50 saved sample accounts without replacing existing records or page-load seeding.
 - [ ] Verify summary rules, both demo roles, account detail round-trip and reload persistence; update docs.
+- [ ] Format customer email drafts into paragraphs and label recipients Email Customer / Slack CSM.
