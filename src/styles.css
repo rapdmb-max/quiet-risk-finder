@@ -148,7 +148,7 @@
   &:active { transform: scale(0.96); }
 }
 
-/* Primary action the user should press: solid fill, soft glow, slow sheen sweep. Colour stays neutral (ink), not risk. */
+/* Primary action the user should press: soft-blue cyber fill, glow, slow sheen sweep. */
 @utility cta-ai {
   position: relative;
   isolation: isolate;
@@ -156,19 +156,21 @@
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   font-weight: 600;
-  color: var(--color-ink-foreground);
-  background-color: var(--color-ink);
+  color: var(--color-ai-foreground);
+  background-color: var(--color-ai);
+  background-image: linear-gradient(180deg, color-mix(in oklab, var(--ai-sheen) 26%, transparent), transparent 62%);
   transition: transform 220ms var(--ease-spring), box-shadow 220ms var(--ease-spring), background-color 150ms, opacity 150ms;
-  box-shadow: 0 10px 26px -12px color-mix(in oklab, var(--ink) 65%, transparent);
+  box-shadow: 0 10px 26px -12px color-mix(in oklab, var(--ai) 70%, transparent), 0 0 0 1px color-mix(in oklab, var(--ai) 22%, transparent);
   &::after {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(115deg, transparent 32%, color-mix(in oklab, var(--panel) 42%, transparent) 50%, transparent 68%);
+    background: linear-gradient(115deg, transparent 32%, color-mix(in oklab, var(--ai-sheen) 55%, transparent) 50%, transparent 68%);
     transform: translateX(-130%);
     animation: cta-sheen 2.8s ease-in-out infinite;
   }
+  &:hover { box-shadow: 0 12px 30px -10px color-mix(in oklab, var(--ai) 82%, transparent), 0 0 0 1px color-mix(in oklab, var(--ai) 34%, transparent); }
   &:hover::after { animation-duration: 1.4s; }
   &:active { transform: scale(0.96); }
 }
