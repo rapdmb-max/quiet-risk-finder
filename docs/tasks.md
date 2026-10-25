@@ -19,3 +19,8 @@
 - [x] 2.3 Empty states
 - [x] 2.4 Keyboard and screen-reader pass (rows are buttons, live region on detail)
 - [x] 2.5 Security scan and publish (public)
+
+## Claude outreach drafts
+- [x] Live Claude drafts grounded in sample account evidence, with server-only credentials
+- [x] Human review with Use draft / Discard, streaming, Stop and safe failure states
+- [x] Live generation verified; account safeguards and review/cancellation tests

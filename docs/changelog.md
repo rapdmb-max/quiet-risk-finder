@@ -21,3 +21,10 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 - Oct 24: Editorial redesign — serif headlines, 3-pane layout, keyboard shortcuts, ⌘K search, island notifications, spring motion, currency switcher.
 - Oct 24: 2-font type system, compact Slack-style list, At a glance section, action buttons (Slack, email draft, sponsor sync, escalate)
 - Oct 24: 3 tabs, At a glance with live numbers, Reach out in Slack message
+
+## 2026-10-25
+### Added
+- Live Claude Sonnet email drafts in Reach out, based on account signals and timeline. Text streams into a separate proposal; human approval is required before replacing the message. Stop and failures preserve the original draft. Generation never sends messages or changes account status.
+  Files: src/components/undertow/ClaudeDraft*, src/lib/ai/*, src/routes/api/draft.ts, src/components/undertow/AccountDetail.tsx
+### Security
+- Lovable Cloud stores server-only provider access denials; credentials and prompts remain on the server. Draft requests accept only known sample account identifiers and require same-origin requests. No real email, Slack, PDF or customer-data integrations were added.

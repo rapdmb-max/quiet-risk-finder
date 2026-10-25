@@ -34,11 +34,14 @@ export async function handleDraft(request: Request): Promise<Response> {
     const gateway = createLovableAiGatewayRunIdFetch();
     let upstreamHeaders: Headers | undefined;
     let upstreamFailure: DraftError | undefined;
+    let resolveUpstream: () => void = () => {};
+    const upstreamReady = new Promise<void>((resolve) => { resolveUpstream = resolve; });
     const anthropic = createAnthropic({
       baseURL: "https://ai.gateway.lovable.dev/v1",
       apiKey: key,
       headers: { "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
       fetch: async (url, init) => {
+        try {
         const response = await gateway.fetch(url, init);
         upstreamHeaders = response.headers;
         if (!response.ok) {
@@ -48,6 +51,7 @@ export async function handleDraft(request: Request): Promise<Response> {
           if (response.status === 403 && !["model_requires_retention_consent", "model_vendor_not_enabled", "provider_not_available_in_region", "credit_limit_reached"].includes(body?.error?.type ?? body?.type)) await saveDenial(message);
         }
         return response;
+        } finally { resolveUpstream(); }
       },
     });
     const result = streamText({
@@ -60,6 +64,7 @@ export async function handleDraft(request: Request): Promise<Response> {
     const iterator = result.fullStream[Symbol.asyncIterator]();
     // Start the upstream call before headers so HTTP denials keep their original status.
     const first = await iterator.next();
+    await upstreamReady;
     if (upstreamFailure) throw upstreamFailure;
     if (!first.done && first.value.type === "error") throw first.value.error;
     const headers = getLovableAiGatewayResponseHeaders(upstreamHeaders, { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache, no-transform" });
@@ -78,7 +83,7 @@ export async function handleDraft(request: Request): Promise<Response> {
           if (!text.trim()) throw new DraftError(422, "Claude returned no draft. This request has ended.");
           controller.enqueue(frame({ type: "done" }));
         } catch (error) {
-          const message = error instanceof DraftError ? error.message : "Claude could not complete the draft. This request has ended.";
+          const message = upstreamFailure?.message ?? (error instanceof DraftError ? error.message : "Claude could not complete the draft. This request has ended.");
           controller.enqueue(frame({ type: "error", message }));
         } finally { controller.close(); }
       },
