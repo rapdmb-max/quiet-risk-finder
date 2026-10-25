@@ -9,7 +9,7 @@
 - [x] Request publication of the verified app.
 
 # Portfolio-first experience
-- [ ] Share the header and portfolio totals across Portfolio, Triage and Outreach; verify both roles and summary navigation.
+- [x] Share the header and portfolio totals across Portfolio, Triage and Outreach; verify both roles and summary navigation.
 - [x] Open Portfolio by default with compact summaries and a searchable, sortable account ledger.
 - [x] Expand to 50 saved sample accounts without replacing existing records or page-load seeding.
 - [x] Verify summary rules, both demo roles, account detail round-trip and reload persistence; update docs.
