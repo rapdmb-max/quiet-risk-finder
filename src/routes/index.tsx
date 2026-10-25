@@ -281,7 +281,9 @@ function Index() {
         <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8">
           <main className="min-w-0">
             {view === "portfolio" ? (
-              <Portfolio key={role} list={scoped} outreach={outreach} role={role} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
+              <Portfolio key={role} list={scoped} outreach={outreach} role={role} load={load} saving={saving} onAssign={assign}
+                onNudge={(a) => void act({ type: "nudge", accountId: a.id }, () => {}, `Nudge to ${a.owner} saved in Slack activity.`)}
+                onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
             ) : view === "tracker" ? (
               <Tracker
                 items={outreach}
