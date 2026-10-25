@@ -18,3 +18,14 @@
 - [x] Add multi-select Portfolio and Triage filtering and sorting; test combined selections.
 - [x] Add editable Portfolio owners and a Slack nudge icon; verify saved ownership and nudge activity through the UI.
 - [x] Keep Slack nudges simulated for the work assignment; no real Slack connection required.
+- [x] Increase the text scale and tighten the left and right gutters on every page.
+
+# Analytics page
+- [ ] Add Analytics as a fourth page, keeping the shared top bar.
+- [ ] One widget per portfolio metric, each showing progress over time with change versus four weeks ago.
+- [ ] Verify both demo roles, mark history as sample data, add tests and update docs.
+
+# Team load page
+- [ ] Move the Triage team-load line into its own page.
+- [ ] One widget per CSM with ARR responsible and per-CSM metrics; include accounts with no owner.
+- [ ] Verify Marta sees the team and Devon sees only his own card; add tests and update docs.
