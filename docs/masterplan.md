@@ -37,3 +37,8 @@ Secondary users: CSMs like Devon, who act on assigned accounts. Senior variant: 
 - High-risk accounts with an owner by Monday noon: 100%
 - Flagged accounts marked "Not a real risk": under 10% (signal quality)
 - Still opening the brief in week 5 (the shelfware test): 80%+ of CS leads
+
+## Current information architecture
+- Portfolio is the landing view: the full role-scoped book, compact computed totals and a dense account ledger. Summaries narrow attention without becoming separate dashboard pages.
+- Triage is the actionable flagged queue; healthy open accounts are not action items. Outreach tracks waiting, stalled and replied messages.
+- The 50 sample accounts persist in Cloud. Persona switching remains a demo; actual authentication and real sending are outside this iteration.

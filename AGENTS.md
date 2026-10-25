@@ -13,3 +13,6 @@
 - Claude draft generation is the live LLM integration, isolated in server-only AI modules behind a same-origin streaming endpoint to keep credentials and prompts private.
 - Claude uses native Messages through Lovable AI Gateway; terminal provider access denials persist in a server-only Cloud table so reloads cannot replay blocked calls.
 - Product docs live in /docs (masterplan, tasks, rules, changelog); mark tasks and log changes there after each task group.
+- Portfolio metrics and filters use pure shared rules; portfolio detail opens in place so the ledger retains filters and scroll position.
+- Sample expansion uses an idempotent data-import script, never page-load seeding; existing records and activity must remain intact.
+- Contact dates derive from the stored contact-age snapshot and its update timestamp; an explicit no-contact timeline record represents never-contacted accounts without schema changes.

@@ -25,3 +25,11 @@ Single source of truth for project-wide decisions. Update immediately when a dec
 - Editorial redesign (user-approved): 3-pane layout (sidebar · list · detail) from 1180px, spring motion, top "island" notifications instead of bottom toast
 - Keyboard: J/K or arrows move, E reached out, X not a risk, 1–3 filters, ⌘K search
 - Currency switcher €/$/£; ARR stored in euros, converted with fixed sample rates (USD 1.08, GBP 0.85)
+
+## Portfolio
+- Portfolio is the default view; navigation is Portfolio · Triage · Outreach. Triage filters stay in Triage, not a sidebar.
+- Summary totals are computed from the role-scoped full book; filtered count and ARR are shown separately.
+- At-risk ARR includes high/rising accounts even after outreach is handled, unless explicitly marked not a real risk. Handled is workflow state, not recovery evidence.
+- Average contact age excludes never-contacted records and displays its denominator. No contact for 30+ days excludes never-contacted records, which are a separate segment.
+- Waiting/stalled totals count messages; account filters deduplicate accounts. Stalled means awaiting a reply for at least five days.
+- Email Customer addresses a customer; Slack CSM addresses the internal owner/team. Email drafts use paragraphs. Sending and attachments remain simulated.

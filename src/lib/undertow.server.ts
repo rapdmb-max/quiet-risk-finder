@@ -2,6 +2,7 @@ import { accounts as SAMPLE, type Account, type Signal, type TimelineEvent } fro
 import { SEED_OUTREACH, type Outreach } from "@/data/outreach";
 import type { Database } from "@/integrations/supabase/types";
 import { actionSchema, decide, withDerived, type Action } from "./rules";
+import { NEVER_CONTACTED } from "./portfolio";
 
 type AccountRow = Database["public"]["Tables"]["accounts"]["Row"];
 type OutreachRow = Database["public"]["Tables"]["outreach"]["Row"];
@@ -24,7 +25,9 @@ const fail = (what: string, error: unknown) => {
 export function toAccount(r: AccountRow): Account {
   return withDerived({
     id: r.id, name: r.name, arr: r.arr_eur, level: r.level as Account["level"], owner: r.owner,
-    lastTouchDays: r.last_touch_days, reason: r.reason, verdict: r.verdict,
+    lastTouchDays: r.last_touch_days,
+    lastContactAt: (r.timeline as unknown as TimelineEvent[]).some((e) => e.text === NEVER_CONTACTED) ? null : new Date(Date.parse(r.updated_at) - r.last_touch_days * DAY).toISOString(),
+    handledReason: r.handled_reason, reason: r.reason, verdict: r.verdict,
     signals: (r.signals ?? []) as unknown as Signal[], timeline: (r.timeline ?? []) as unknown as TimelineEvent[],
     suggestion: r.suggestion, status: r.status as Account["status"], handledNote: r.handled_note ?? undefined,
   });
@@ -61,13 +64,8 @@ async function seed() {
 
 export async function loadState(): Promise<BriefState> {
   const sb = await db();
-  let { data: rows, error } = await sb.from("accounts").select("*");
+  const { data: rows, error } = await sb.from("accounts").select("*");
   if (error) throw fail("load accounts", error);
-  if (!rows?.length) {
-    await seed();
-    ({ data: rows, error } = await sb.from("accounts").select("*"));
-    if (error) throw fail("reload accounts", error);
-  }
   const [{ data: out, error: outError }, { data: events, error: eventError }] = await Promise.all([
     sb.from("outreach").select("*").order("sent_at", { ascending: false }),
     sb.from("account_events").select("*").order("created_at", { ascending: false }).limit(100),
@@ -121,7 +119,7 @@ export async function applyAction(input: unknown): Promise<BriefState> {
     const handledAt = decision.patch.status === "handled" ? new Date().toISOString() : decision.patch.status === "open" ? null : undefined;
     // Guard on the status we decided from, so two people acting at once can't both win.
     const { data, error } = await sb.from("accounts")
-      .update({ ...decision.patch, ...(handledAt !== undefined && { handled_at: handledAt }), updated_at: new Date().toISOString() })
+      .update({ ...decision.patch, ...(handledAt !== undefined && { handled_at: handledAt }), last_touch_days: account.lastContactAt ? Math.max(0, Math.floor((Date.now() - Date.parse(account.lastContactAt)) / DAY)) : account.lastTouchDays, updated_at: new Date().toISOString() })
       .eq("id", account.id).eq("status", account.status).eq("owner", account.owner)
       .select("id").maybeSingle();
     if (error) throw fail("update account", error);

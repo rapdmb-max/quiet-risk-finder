@@ -7,3 +7,13 @@
 - [x] Apply the pending persistence migration and verify the tables exist.
 - [x] Verify first-load sample data and reload persistence; run existing rules tests.
 - [x] Request publication of the verified app.
+
+# Portfolio-first experience
+- [x] Open Portfolio by default with compact summaries and a searchable, sortable account ledger.
+- [x] Expand to 50 saved sample accounts without replacing existing records or page-load seeding.
+- [x] Verify summary rules, both demo roles, account detail round-trip and reload persistence; update docs.
+- [x] Format customer email drafts into paragraphs and label recipients Email Customer / Slack CSM.
+- [x] Remove the inline demo-delivery sentence from Reach out.
+- [ ] Add multi-select Portfolio filtering and sorting; test combined selections.
+- [ ] Add editable Portfolio owners and a Slack nudge icon.
+- [ ] Connect real Slack nudge delivery after the owner chooses shared workspace or per-user connections; requires real app sign-in and recipient mapping.

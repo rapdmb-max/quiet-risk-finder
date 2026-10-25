@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { LevelTag, Sparkline, Tag, severityText } from "./Bits";
 import { ClaudeDraft } from "./ClaudeDraft";
 import type { ActivityItem } from "@/lib/undertow.server";
+import { contactAge } from "@/lib/portfolio";
+import { formatEmail } from "@/lib/email-format";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   account: Account;
@@ -24,9 +27,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const [copied, setCopied] = useState(false);
   const [channel, setChannel] = useState<"Email" | "Slack">("Email");
   const [pdf, setPdf] = useState(true);
-  const [draft, setDraft] = useState(a.suggestion);
+  const [draft, setDraft] = useState(() => formatEmail(a.suggestion));
   const currency = useCurrency();
   const handled = a.status === "handled";
+  const age = contactAge(a);
   const tools = new Set(a.signals.map((s) => s.source.split(" via ").pop())).size;
   const pointing = a.signals.filter((s) => s.severity !== "none").length;
   const firstName = a.suggestion.match(/^Hi (\w+)/)?.[1];
@@ -43,7 +47,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
       </header>
       <p className="mt-1 text-[13px] text-muted-ink">
         <span className="font-mono">{formatArr(a.arr, currency)}/yr</span> · last CSM touch{" "}
-        <span className="font-mono">{a.lastTouchDays}d ago</span> · owner: {a.owner === "Unassigned" ? "nobody" : a.owner}
+        <span className="font-mono">{age === null ? "Never contacted" : `${age}d ago`}</span> · owner: {a.owner === "Unassigned" ? "nobody" : a.owner}
       </p>
 
       {handled ? (
@@ -106,10 +110,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               <h3 className="eyebrow">Reach out</h3>
               <div role="radiogroup" aria-label="Channel" className="flex rounded-md border p-0.5 text-[13px]">
                 {(["Email", "Slack"] as const).map((c) => (
-                  <button key={c} role="radio" aria-checked={channel === c} onClick={() => setChannel(c)}
-                    className={cn("rounded px-3 py-1", channel === c ? "bg-ink font-semibold text-ink-foreground" : "text-muted-ink hover:text-ink")}>
-                    {c}
-                  </button>
+                  <Button variant="ghost" key={c} role="radio" aria-checked={channel === c} onClick={() => setChannel(c)}
+                    className={cn("h-auto rounded px-3 py-1 text-[13px] font-normal", channel === c ? "bg-ink font-semibold text-ink-foreground hover:bg-ink hover:text-ink-foreground" : "text-muted-ink hover:text-ink")}>
+                    {c === "Email" ? "Email Customer" : "Slack CSM"}
+                  </Button>
                 ))}
               </div>
             </div>
@@ -122,20 +126,19 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                 value={channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`}
                 onChange={(e) => channel === "Email" && setDraft(e.target.value)}
                 readOnly={channel === "Slack"}
-                rows={4}
+                rows={channel === "Email" ? 8 : 4}
                 className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
               />
-              {channel === "Email" && <ClaudeDraft accountId={a.id} onApply={setDraft} />}
+              {channel === "Email" && <ClaudeDraft accountId={a.id} onApply={(text) => setDraft(formatEmail(text))} />}
               {channel === "Email" && emailConnected && (
                 <label className="mt-3 flex items-center gap-2 text-[13px]">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
                   Attach account summary PDF (<span className="font-mono">{formatArr(a.arr, currency)}/yr</span>, usage, tickets)
                 </label>
               )}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[13px] text-muted-ink">You review and send. Undertow never contacts customers on its own.</p>
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
                 <div className="flex gap-2">
-                  <button onClick={() => { navigator.clipboard?.writeText(draft); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                     className="rounded-md border px-3 py-1.5 text-[13px] hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
                   {channel === "Email" && !emailConnected ? (
                     <button onClick={onConnectEmail} className="spring-press rounded-md bg-ink px-3 py-1.5 text-[13px] font-semibold text-ink-foreground">Connect email</button>
@@ -168,10 +171,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
             </label>
             <div className="ml-auto flex gap-2">
               <button onClick={onNotRisk} disabled={saving} className="disabled:opacity-50 spring-press rounded-md border px-4 py-2 hover:bg-soft">
-                Not a real risk <kbd className="kbd">X</kbd>
+                Not a real risk
               </button>
               <button onClick={onReachedOut} disabled={saving} className="disabled:opacity-50 spring-press rounded-md bg-ink px-4 py-2 font-semibold text-ink-foreground hover:opacity-90">
-                I've reached out <kbd className="kbd kbd-inverse">E</kbd>
+                I've reached out
               </button>
             </div>
           </div>

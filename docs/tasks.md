@@ -36,3 +36,10 @@
 - [x] 4.8a Apply migration in Lovable Cloud; verify five sample accounts and three outreach records on first load and reload; 20 existing rules/brief tests pass
 - [x] 4.8b Request publication of the verified app
 - [ ] 4.8c Verify completed deployment and any additional PR acceptance checks (deployment pending; PR checks not supplied)
+
+## Portfolio-first experience
+- [x] Portfolio opens first, with team/CSM totals, 50 saved samples and compact account rows.
+- [x] Actionable summary filters, owner/risk search, ARR/contact sorting and in-place detail preserve list context.
+- [x] Contact-age calculations exclude never-contacted accounts; risk is distinct from handled outreach.
+- [x] Customer email paragraphs and separate Email Customer / Slack CSM recipient controls.
+- [x] 35 tests pass; browser verifies both demo roles, summaries, detail round-trip and 50 accounts after reload. No publication requested.

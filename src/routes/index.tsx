@@ -1,22 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ACCOUNTS_WATCHED, BRIEF_DATE, CSMS, CURRENCIES, LAST_WEEK, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
+import { CSMS, CURRENCIES, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
 import { filterAccounts, glance, isStalled, isUnderRadar, scopeFor, type Filter, type Role } from "@/lib/brief";
 import { CurrencyProvider } from "@/lib/currency";
 import { cn } from "@/lib/utils";
-import { LevelTag, Logo, Tag } from "@/components/undertow/Bits";
+import { LevelTag, Logo } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Portfolio } from "@/components/undertow/Portfolio";
 import { Tracker, type Outreach } from "@/components/undertow/Tracker";
 import type { ActivityItem, BriefState } from "@/lib/undertow.server";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { MultiFilter } from "@/components/undertow/MultiFilter";
+import { portfolioRows, type Sort } from "@/lib/portfolio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Undertow · Your weekly account brief" },
+      { title: "Undertow · Account portfolio" },
       { name: "description", content: "Undertow connects support, usage, CRM and Slack signals and tells your CS team which accounts need them this week." },
-      { property: "og:title", content: "Undertow · Your weekly account brief" },
-      { property: "og:description", content: "Which accounts need you this week, and why. Pushed to Slack every Monday." },
+      { property: "og:title", content: "Undertow · Account portfolio" },
+      { property: "og:description", content: "Your book of business: account risk, ARR, contact coverage and outstanding replies." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -25,7 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 type View = "brief" | "tracker" | "portfolio";
-const VIEWS = [["brief", "Triage"], ["tracker", "Outreach"], ["portfolio", "Portfolio"]] as const;
+const VIEWS = [["portfolio", "Portfolio"], ["brief", "Triage"], ["tracker", "Outreach"]] as const;
 const ROLES: [Role, string][] = [["Marta", "Head of CS"], ["Devon", "CSM"]];
 const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
   role === "Marta"
@@ -33,13 +37,17 @@ const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
     : [{ id: "week", label: "My accounts", key: "1" }, { id: "handled", label: "Handled", key: "2" }];
 
 function Index() {
-  const [view, setView] = useState<View>("brief");
+  const [view, setView] = useState<View>("portfolio");
+  const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [role, setRole] = useState<Role>("Marta");
   const [list, setList] = useState<Account[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [load, setLoad] = useState<"loading" | "ready" | "error">("loading");
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<Filter>("week");
+  const [triageOwners, setTriageOwners] = useState<string[]>([]);
+  const [triageRisks, setTriageRisks] = useState<string[]>([]);
+  const [triageSort, setTriageSort] = useState<Sort>("risk");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [toast, setToast] = useState<string | null>(null);
@@ -101,7 +109,7 @@ function Index() {
   const sorted = [...list].sort((a, b) => levelRank[a.level] - levelRank[b.level] || b.arr * (a.underRadar ? 1 : 0.5) - a.arr * (b.underRadar ? 1 : 0.5) || Number(b.underRadar) - Number(a.underRadar));
   const scoped = scopeFor(sorted, role);
   const FILTERS = filtersFor(role);
-  const visible = filterAccounts(scoped, filter);
+  const visible = portfolioRows(filterAccounts(scoped, filter), outreach, { segment: "all", query: "", owner: triageOwners, risk: triageRisks, sort: triageSort });
   const c = { week: filterAccounts(scoped, "week").length, radar: filterAccounts(scoped, "radar").length, handled: filterAccounts(scoped, "handled").length };
   const g = glance(list);
   const myOpen = filterAccounts(scoped, "week");
@@ -112,6 +120,9 @@ function Index() {
   const open = filterAccounts(scoped, "week");
   const switchRole = (r: Role) => {
     setRole(r);
+    setPortfolioId(null);
+    setTriageOwners([]);
+    setTriageRisks([]);
     setFilter("week");
     setSelectedId(filterAccounts(scopeFor(sorted, r), "week")[0]?.id ?? null);
     say(r === "Marta" ? "Viewing as Marta, Head of CS." : "Viewing as Devon, CSM. Only his accounts.");
@@ -127,7 +138,8 @@ function Index() {
     setList((l) => l.map((a) => (a.id === id ? { ...a, ...patch } : a)));
 
   const assign = (id: string, owner: string) => {
-    const a = list.find((x) => x.id === id)!;
+    const a = list.find((x) => x.id === id);
+    if (!a) return;
     void act({ type: "assign", accountId: id, owner },
       () => update(id, { owner, underRadar: isUnderRadar({ owner, lastTouchDays: a.lastTouchDays }) }),
       owner === "Unassigned" ? "Owner removed." : `Assigned to ${owner}. They'll get this summary in Slack.`);
@@ -175,10 +187,10 @@ function Index() {
       const idx = s.visible.findIndex((a) => a.id === s.selected?.id);
       if (e.key === "j" || e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedId(s.visible[Math.min(idx + 1, s.visible.length - 1)]!.id);
+        setSelectedId(s.visible[Math.min(idx + 1, s.visible.length - 1)]?.id ?? null);
       } else if (e.key === "k" || e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedId(s.visible[Math.max(idx - 1, 0)]!.id);
+        setSelectedId(s.visible[Math.max(idx - 1, 0)]?.id ?? null);
       } else if (e.key === "e" && s.selected?.status === "open") actionsRef.current.reachedOut(s.selected.id);
       else if (e.key === "x" && s.selected?.status === "open") actionsRef.current.notRisk(s.selected.id);
     };
@@ -190,7 +202,26 @@ function Index() {
   const actionsRef = useRef({ reachedOut, notRisk });
   actionsRef.current = { reachedOut, notRisk };
 
-  const results = sorted.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()));
+  const results = scoped.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()));
+
+  const portfolioAccount = scoped.find((a) => a.id === portfolioId);
+  const detailFor = (a: Account) => (<AccountDetail
+                        key={a.id}
+                        account={a}
+                        onAssign={(o) => assign(a.id, o)}
+                        onReachedOut={() => reachedOut(a.id)}
+                        onNotRisk={() => notRisk(a.id)}
+                        onNotify={say}
+                        emailConnected={emailConnected}
+                        onConnectEmail={() => { setEmailConnected(true); say("Demo email connection enabled. Sending remains simulated."); }}
+                        activity={activity.filter((x) => x.accountId === a.id).slice(0, 5)}
+                        saving={saving}
+                        onReopen={() => reopen(a.id)}
+                        onSend={(channel, to, pdf) => void act({ type: "send", accountId: a.id, channel, to, pdf }, () => {
+                          setOutreach((l) => [{ id: crypto.randomUUID(), accountId: a.id, account: a.name, channel, to, by: role, daysAgo: 0, pdf, status: "waiting" }, ...l]);
+                          if (channel === "Email") moveOn(a.id, `${role} emailed ${to} · waiting on reply`);
+                        }, `Simulated ${channel} message saved. Nothing was delivered.`)}
+                      />);
 
   return (
     <CurrencyProvider value={currency}>
@@ -220,7 +251,7 @@ function Index() {
             </div>
             <div className="ml-auto flex items-center gap-3 text-[13px] text-muted-ink">
               <button onClick={() => { setPalette(true); setQuery(""); }} className="spring-press hidden items-center gap-2 rounded-md border bg-panel px-3 py-1.5 md:flex">
-                Search accounts <kbd className="kbd">⌘K</kbd>
+                Search accounts
               </button>
               <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[13px]">
                 {(Object.keys(CURRENCIES) as Currency[]).map((cur) => (
@@ -250,13 +281,13 @@ function Index() {
         <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8">
           <main className="min-w-0">
             {view === "portfolio" ? (
-              <Portfolio list={sorted} onOpen={(id) => pick(list.find((x) => x.id === id)!)} />
+              <Portfolio key={role} list={scoped} outreach={outreach} role={role} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
             ) : view === "tracker" ? (
               <Tracker
                 items={outreach}
                 role={role}
                 onReplied={(id) => void act({ type: "replied", outreachId: id }, () => setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))), "Marked as replied.")}
-                onOpen={(id) => pick(list.find((x) => x.id === id)!)}
+                onOpen={(id) => { const a = scoped.find((x) => x.id === id); if (a) pick(a); }}
                 onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
               />
             ) : (
@@ -264,7 +295,7 @@ function Index() {
                 <section className="flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
                     <p className="font-mono text-[13px] text-muted-ink">
-                      {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
+                      Triage · {scoped.length} accounts watched
                     </p>
                     {load !== "ready" ? (
                       <h1 className="headline mt-2 text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h1>
@@ -275,8 +306,7 @@ function Index() {
                           {g.unowned.length > 0 && <span className="text-risk">{g.unowned.length} {g.unowned.length === 1 ? "has" : "have"} no owner.</span>}
                         </h1>
                         <p className="mt-2 text-muted-ink">
-                          Last week: <span className="font-mono">{LAST_WEEK.open}</span> accounts, <span className="font-mono">{formatArr(LAST_WEEK.arrAtRisk, currency)}</span>.
-                          {" "}Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
+                          Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
                           {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
                         </p>
                       </>
@@ -310,6 +340,13 @@ function Index() {
                   </div>
                 </section>
 
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  {role === "Marta" && <MultiFilter label="Owner" values={triageOwners} onChange={setTriageOwners} options={CSMS.map((c) => ({ value: c, label: c }))}/>}
+                  <MultiFilter label="Risk" values={triageRisks} onChange={setTriageRisks} options={[{ value: "high", label: "High" }, { value: "rising", label: "Rising" }, { value: "calm", label: "Healthy" }]}/>
+                  <label className="flex items-center gap-2 text-[13px] text-muted-ink">Sort<select aria-label="Sort triage" value={triageSort} onChange={(e) => setTriageSort(e.target.value as Sort)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="risk">Risk first</option><option value="arr-desc">ARR · highest first</option><option value="arr-asc">ARR · lowest first</option><option value="contact-oldest">Contact · oldest first</option><option value="contact-newest">Contact · newest first</option><option value="name-asc">Account · A–Z</option><option value="name-desc">Account · Z–A</option></select></label>
+                  {(triageOwners.length > 0 || triageRisks.length > 0) && <Button variant="ghost" className="text-[13px] font-normal" onClick={() => { setTriageOwners([]); setTriageRisks([]); }}>Clear filters</Button>}
+                  <span className="font-mono text-[13px] text-muted-ink">{visible.length} accounts</span>
+                </div>
                 <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
                   {/* Pane 2: list, one line per account like the Slack brief */}
                   <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
@@ -377,23 +414,7 @@ function Index() {
                   {/* Pane 3: detail */}
                   <div ref={detailRef} className="scroll-mt-20 min-[900px]:col-span-7">
                     {selected ? (
-                      <AccountDetail
-                        key={selected.id}
-                        account={selected}
-                        onAssign={(o) => assign(selected.id, o)}
-                        onReachedOut={() => reachedOut(selected.id)}
-                        onNotRisk={() => notRisk(selected.id)}
-                        onNotify={say}
-                        emailConnected={emailConnected}
-                        onConnectEmail={() => { setEmailConnected(true); say(`Email connected as ${role.toLowerCase()}@yourcompany.com.`); }}
-                        activity={selectedActivity}
-                        saving={saving}
-                        onReopen={() => reopen(selected.id)}
-                        onSend={(channel, to, pdf) => void act({ type: "send", accountId: selected.id, channel, to, pdf }, () => {
-                          setOutreach((l) => [{ id: crypto.randomUUID(), accountId: selected.id, account: selected.name, channel, to, by: role, daysAgo: 0, pdf, status: "waiting" }, ...l]);
-                          if (channel === "Email") moveOn(selected.id, `${role} emailed ${to} · waiting on reply`);
-                        }, channel === "Email" ? `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.` : `Sent to ${to} in Slack. Tracking the reply.`)}
-                      />
+                      detailFor(selected)
                     ) : load === "ready" ? (
                       <div className="rounded-lg border bg-panel p-10 text-center text-muted-ink">Nothing here.</div>
                     ) : (
@@ -404,11 +425,18 @@ function Index() {
               </>
             )}
             <p className="mt-12 text-center text-[13px] text-muted-ink">
-              Sample companies and people are fictional; actions are saved. Currency rates are illustrative.
-              {role === "Marta" && load === "ready" && <> · <button onClick={reset} className="underline hover:text-ink">Reset sample week</button></>}
+              Sample companies and people are fictional; actions are saved. Email, Slack and PDF sending are simulated. Currency rates are illustrative.
+
             </p>
           </main>
         </div>
+
+        <Dialog open={Boolean(portfolioAccount) && view === "portfolio"} onOpenChange={(open) => { if (!open) setPortfolioId(null); }}>
+          <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-[860px] overflow-y-auto p-0">
+            <DialogTitle className="sr-only">{portfolioAccount?.name ?? "Account detail"}</DialogTitle>
+            {portfolioAccount && detailFor(portfolioAccount)}
+          </DialogContent>
+        </Dialog>
 
         {/* Dynamic Island */}
         <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
@@ -460,6 +488,7 @@ function Index() {
   );
 
   function pick(a: Account) {
+    if (view === "portfolio") { setPortfolioId(a.id); setPalette(false); return; }
     setView("brief");
     setFilter(a.status === "handled" ? "handled" : "week");
     setSelectedId(a.id);

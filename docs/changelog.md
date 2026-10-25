@@ -46,3 +46,18 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 ### Fixed
 - 2026-10-25 Applied the pending persistence migration in Lovable Cloud through a migration runner checkpoint; regenerated database types. Verified the first page load creates five sample accounts and three outreach records, which remain after reload. All 20 rules and brief tests pass (Task 4.8a).
   Files: drizzle/migrations/0002_apply_pending_undertow.sql, src/integrations/supabase/types.ts, docs/tasks.md, roadmap.md
+
+## 2026-10-25 — Portfolio first
+### Changed
+- Portfolio is the default view, followed by Triage and Outreach. A compact ledger shows 50 saved sample accounts, ARR, risk, ownership, signals, contact dates and outreach state.
+- Computed summaries filter the ledger; search, owner/risk filters and numeric sorting retain full-book totals. Account details open in place without losing filters or scroll.
+- Customer email drafts have greeting/context/next-step paragraphs. Reach out distinguishes Email Customer from Slack CSM; both delivery paths remain simulated.
+- Removed page-load sample creation, reset UI, fabricated historical comparison and remaining visible shortcut hints. Healthy open accounts stay out of the triage action queue.
+### Added
+- Repeatable sample expansion in docs/portfolio-samples.sql applied through the data tool (DDL migration tools cannot seed rows). Existing five accounts, ownership and activity remain untouched.
+- Shared portfolio rules with nine tests; all 35 targeted tests pass. Browser checked summaries, 50-row reload, both demo roles, search/sorting and email/Slack recipients.
+### Limitations
+- Persona switching remains a demo, not authenticated access control. Contact dates derive from existing contact-age snapshots; never-contacted samples use an explicit timeline marker. No schema changes or publication.
+
+### Changed
+- Removed the inline demo-delivery sentence from Reach out at the owner's request; the page footer still identifies simulated delivery.
