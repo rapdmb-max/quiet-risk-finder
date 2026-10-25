@@ -43,3 +43,4 @@
 - [x] Contact-age calculations exclude never-contacted accounts; risk is distinct from handled outreach.
 - [x] Customer email paragraphs and separate Email Customer / Slack CSM recipient controls.
 - [x] 35 tests pass; browser verifies both demo roles, summaries, detail round-trip and 50 accounts after reload. No publication requested.
+- [x] Multi-select filters in both views, saved inline owner edits and simulated Slack nudge activity; 38 targeted tests pass.

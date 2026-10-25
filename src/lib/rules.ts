@@ -13,6 +13,7 @@ const accountId = z.string().min(1).max(80);
 
 export const actionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("assign"), actor, accountId, owner: z.string().min(1).max(40) }).strict(),
+  z.object({ type: z.literal("nudge"), actor, accountId }).strict(),
   z.object({ type: z.literal("reached_out"), actor, accountId }).strict(),
   z.object({ type: z.literal("not_a_risk"), actor, accountId }).strict(),
   z.object({ type: z.literal("reopen"), actor, accountId }).strict(),
@@ -47,10 +48,13 @@ export function decide(account: Account, action: Exclude<Action, { type: "replie
   if (!canAct(account, role)) return deny(403, `${account.name} belongs to ${account.owner === "Unassigned" ? "nobody yet" : account.owner}. Only they or Marta can act on it.`);
 
   switch (action.type) {
+    case "nudge": {
+      if (account.owner === "Unassigned") return deny(422, "Assign an owner before nudging them.");
+      return { ok: true, patch: null, event: { type: "messaged", detail: `nudged ${account.owner} in Slack` } };
+    }
     case "assign": {
       if (role !== "Marta") return deny(403, "Only the Head of CS assigns owners.");
       if (!CSMS.includes(action.owner)) return deny(422, "Choose someone on the CS team.");
-      if (account.status === "handled") return deny(409, `${account.name} is already handled. Reopen it first.`);
       if (account.owner === action.owner) return deny(409, `${account.name} is already with ${action.owner}.`);
       const removed = action.owner === "Unassigned";
       return { ok: true, patch: { owner: action.owner }, event: { type: "assigned", detail: removed ? `removed ${account.owner} as owner` : `assigned ${action.owner}` } };

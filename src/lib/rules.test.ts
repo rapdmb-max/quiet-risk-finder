@@ -13,6 +13,15 @@ const northvale = byId("northvale"); // owned by Aisha
 const tessel = byId("tessel"); // already handled
 
 describe("action rules", () => {
+  it("Portfolio ownership remains editable on handled accounts without reopening them", () => {
+    expect(decide(tessel, { type: "assign", actor: "Marta", accountId: tessel.id, owner: "Devon" })).toMatchObject({ ok: true, patch: { owner: "Devon" } });
+    expect(decide(tessel, { type: "assign", actor: "Devon", accountId: tessel.id, owner: "Devon" }).ok).toBe(false);
+  });
+  it("a nudge targets the assigned CSM and never changes account risk or contact state", () => {
+    expect(decide(fernway, { type: "nudge", actor: "Marta", accountId: fernway.id })).toMatchObject({ ok: true, patch: null, event: { type: "messaged", detail: "nudged Devon in Slack" } });
+    expect(decide(brightline, { type: "nudge", actor: "Marta", accountId: brightline.id })).toMatchObject({ ok: false, status: 422 });
+    expect(decide(northvale, { type: "nudge", actor: "Devon", accountId: northvale.id })).toMatchObject({ ok: false, status: 403 });
+  });
   it("only the Head of CS assigns owners, and only to the team", () => {
     expect(decide(brightline, { type: "assign", actor: "Marta", accountId: "brightline", owner: "Devon" })).toMatchObject({ ok: true, patch: { owner: "Devon" } });
     expect(decide(fernway, { type: "assign", actor: "Devon", accountId: "fernway", owner: "Aisha" })).toMatchObject({ ok: false, status: 403 });

@@ -33,3 +33,5 @@ Single source of truth for project-wide decisions. Update immediately when a dec
 - Average contact age excludes never-contacted records and displays its denominator. No contact for 30+ days excludes never-contacted records, which are a separate segment.
 - Waiting/stalled totals count messages; account filters deduplicate accounts. Stalled means awaiting a reply for at least five days.
 - Email Customer addresses a customer; Slack CSM addresses the internal owner/team. Email drafts use paragraphs. Sending and attachments remain simulated.
+- Owner/risk filters allow multiple selections: choices within one filter are OR; separate filters combine with AND. Empty selections mean all.
+- Marta may change owners on open or handled accounts without changing their workflow status. Portfolio Slack nudges target the current owner, require an owner, save internal message activity and never change risk/customer contact age.
