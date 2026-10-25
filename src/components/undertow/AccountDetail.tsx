@@ -4,6 +4,7 @@ import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Sparkline, Tag, severityText } from "./Bits";
 import { ClaudeDraft } from "./ClaudeDraft";
+import type { ActivityItem } from "@/lib/undertow.server";
 
 interface Props {
   account: Account;
@@ -14,9 +15,12 @@ interface Props {
   emailConnected: boolean;
   onConnectEmail: () => void;
   onSend: (channel: "Email" | "Slack", to: string, pdf: boolean) => void;
+  onReopen?: () => void;
+  activity?: ActivityItem[];
+  saving?: boolean;
 }
 
-export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, onNotify, emailConnected, onConnectEmail, onSend }: Props) {
+export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, onNotify, emailConnected, onConnectEmail, onSend, onReopen, activity = [], saving = false }: Props) {
   const [copied, setCopied] = useState(false);
   const [channel, setChannel] = useState<"Email" | "Slack">("Email");
   const [pdf, setPdf] = useState(true);
@@ -46,6 +50,11 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
         <div className="mt-6 rounded-lg bg-calm-soft p-5">
           <p className="font-semibold text-calm">{a.handledNote}</p>
           <p className="mt-1">Undertow keeps watching and will flag it again only if the signals change.</p>
+          {onReopen && (
+            <button onClick={onReopen} disabled={saving} className="spring-press mt-3 rounded-md border bg-panel px-3 py-1.5 text-[13px] hover:bg-soft disabled:opacity-50">
+              Reopen
+            </button>
+          )}
         </div>
       ) : (
         <div className={cn("mt-6 rounded-lg p-5", a.level === "high" ? "bg-risk-soft" : "bg-rising-soft")}>
@@ -148,6 +157,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               Owner
               <select
                 value={a.owner}
+                disabled={saving}
                 onChange={(e) => onAssign(e.target.value)}
                 className="rounded-md border bg-panel px-3 py-2 text-[15px] text-ink focus:outline-2 focus:outline-ink"
               >
@@ -157,18 +167,40 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               </select>
             </label>
             <div className="ml-auto flex gap-2">
-              <button onClick={onNotRisk} className="spring-press rounded-md border px-4 py-2 hover:bg-soft">
+              <button onClick={onNotRisk} disabled={saving} className="disabled:opacity-50 spring-press rounded-md border px-4 py-2 hover:bg-soft">
                 Not a real risk <kbd className="kbd">X</kbd>
               </button>
-              <button onClick={onReachedOut} className="spring-press rounded-md bg-ink px-4 py-2 font-semibold text-ink-foreground hover:opacity-90">
+              <button onClick={onReachedOut} disabled={saving} className="disabled:opacity-50 spring-press rounded-md bg-ink px-4 py-2 font-semibold text-ink-foreground hover:opacity-90">
                 I've reached out <kbd className="kbd kbd-inverse">E</kbd>
               </button>
             </div>
           </div>
         </>
       )}
+
+      {activity.length > 0 && (
+        <section className="mt-8 border-t pt-6">
+          <h3 className="eyebrow">Activity</h3>
+          <ul className="mt-3 space-y-1.5 text-[13px]">
+            {activity.map((e) => (
+              <li key={e.id} className="flex justify-between gap-4">
+                <span><span className="font-semibold">{e.actor}</span> {e.detail}</span>
+                <span className="shrink-0 font-mono text-muted-ink">{since(e.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }
 
 const words: Record<number, string> = { 1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five" };
+
+function since(iso: string) {
+  const min = Math.round((Date.now() - Date.parse(iso)) / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+}
