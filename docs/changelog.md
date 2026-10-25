@@ -42,3 +42,7 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
   Files: src/routes/index.tsx, src/lib/ai/draft.server.ts, src/data/outreach.ts
 ### Security
 - Tables have RLS on with no client policies; only server routes (service role) touch them. Action payloads are validated with strict schemas and must come from the same origin. Role switching is a demo identity, not authentication.
+
+### Fixed
+- 2026-10-25 Applied the pending persistence migration in Lovable Cloud through a migration runner checkpoint; regenerated database types. Verified the first page load creates five sample accounts and three outreach records, which remain after reload. All 20 rules and brief tests pass (Task 4.8a).
+  Files: drizzle/migrations/0002_apply_pending_undertow.sql, src/integrations/supabase/types.ts, docs/tasks.md, roadmap.md
