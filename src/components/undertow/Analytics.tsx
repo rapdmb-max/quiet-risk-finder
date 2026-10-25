@@ -39,7 +39,7 @@ function TrendChart({ points, className }: { points: number[]; className: string
       </svg>
       <span
         className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current"
-        style={{ left: `${(lx / w) * 100}%`, top: `${(ly / h) * 100}%` }}
+        style={{ left: "100%", top: `${(lastY / h) * 100}%` }}
       />
     </div>
   );
