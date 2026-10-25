@@ -304,7 +304,7 @@ function Index() {
             {view === "portfolio" ? (
               <Portfolio key={role} list={scoped} outreach={outreach} role={role} segment={portfolioSegment} onSegmentChange={setPortfolioSegment} summaryRevision={summaryRevision} load={load} saving={saving} onAssign={assign}
                 onNudge={(a) => void act({ type: "nudge", accountId: a.id }, () => {}, `Nudge to ${a.owner} saved in Slack activity.`)}
-                onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
+                onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} ownerFocus={ownerFocus} />
             ) : view === "tracker" ? (
               <Tracker
                 items={outreach}
@@ -312,6 +312,22 @@ function Index() {
                 onReplied={(id) => void act({ type: "replied", outreachId: id }, () => setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))), "Marked as replied.")}
                 onOpen={(id) => { const a = scoped.find((x) => x.id === id); if (a) pick(a); }}
                 onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
+              />
+            ) : view === "analytics" ? (
+              <Analytics list={scoped} outreach={outreach} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onSummary={openSegment} />
+            ) : view === "team" ? (
+              <TeamLoad
+                list={scoped}
+                outreach={outreach}
+                role={role}
+                load={load}
+                onRetry={() => { setLoad("loading"); void refresh(); }}
+                onOpenOwner={(owner) => {
+                  setPortfolioSegment("all");
+                  setOwnerFocus({ owner, revision: (ownerFocus?.revision ?? 0) + 1 });
+                  setView("portfolio");
+                  window.scrollTo({ top: 0 });
+                }}
               />
             ) : (
               <>
