@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search, X, Slack } from "lucide-react";
 import { CSMS, formatArr, type Account } from "@/data/accounts";
 import type { Outreach } from "@/data/outreach";
@@ -20,6 +20,7 @@ export function Portfolio({ list, outreach, role, segment, onSegmentChange: setS
   const [owner, setOwner] = useState<string[]>([]);
   const [risk, setRisk] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("risk");
+  useEffect(() => { setQuery(""); setOwner([]); setRisk([]); }, [summaryRevision]);
   const g = portfolioSummary(list, outreach);
   const rows = portfolioRows(list, outreach, { segment, query, owner, risk, sort });
   const filtered = segment !== "all" || query !== "" || owner.length > 0 || risk.length > 0;
