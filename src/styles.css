@@ -136,6 +136,11 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  font-weight: 600;
+  color: var(--color-ink-foreground);
+  background-color: var(--color-ink);
   transition: transform 220ms var(--ease-spring), box-shadow 220ms var(--ease-spring), background-color 150ms, opacity 150ms;
   box-shadow: 0 10px 26px -12px color-mix(in oklab, var(--ink) 65%, transparent);
   &::after {
