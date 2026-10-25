@@ -16,4 +16,4 @@
 - [x] Remove the inline demo-delivery sentence from Reach out.
 - [ ] Add multi-select Portfolio filtering and sorting; test combined selections.
 - [ ] Add editable Portfolio owners and a Slack nudge icon.
-- [ ] Connect real Slack nudge delivery after the owner chooses shared workspace or per-user connections; requires real app sign-in and recipient mapping.
+- [x] Keep Slack nudges simulated for the work assignment; no real Slack connection required.
