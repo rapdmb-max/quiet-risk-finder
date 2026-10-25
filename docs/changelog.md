@@ -65,3 +65,19 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 - Unified Portfolio, Triage and Outreach under one sticky header: consistent page title/date layout, role-scoped portfolio totals always visible, and summary links into the Portfolio ledger. View-specific queue and outreach context remain below. Verified identical totals across tabs, Devon scope, summary navigation and scrolling; 11 relevant tests pass.
   Files: src/components/undertow/WorkspaceHeader.tsx, src/components/undertow/Portfolio.tsx, src/components/undertow/Tracker.tsx, src/routes/index.tsx
 - Added checkbox multi-select owner/risk filters to Portfolio and Triage, numeric/contact/name sorting, editable Portfolio owners and per-owner Slack nudge icons. Nudges use existing message activity, preserve customer contact/risk state and remain simulated for the work assignment. Owner edits also work on handled accounts without reopening them; Marta-only assignment is preserved. Browser verified combined filters, owner changes after reload and nudge activity readback. 38 targeted tests pass.
+
+## 2026-10-25 — Analytics and team load
+### Added
+- Analytics page: one widget per portfolio metric (accounts, total ARR, at-risk ARR, unassigned at risk, average contact age, no contact 30+ days, never contacted, awaiting replies), each with a weekly trend line, change versus four weeks ago and a 6/12/26-week range. Clicking a widget opens that slice of the Portfolio ledger. History is clearly labelled sample data because the demo was seeded this week; the newest point on every line is today's live figure.
+  Files: src/lib/analytics.ts, src/lib/analytics.test.ts, src/components/undertow/Analytics.tsx
+- Team load page: a card per owner with ARR responsible, share of book ARR, needs-action load bar and per-person metrics (at risk, at-risk ARR, average contact age, 30+ days, never contacted, awaiting, stalled, handled, coverage), plus a workload split across the team. The no-owner pile is shown last and flagged. Marta can jump from a card to that person's accounts in the ledger; Devon sees only his own card.
+  Files: src/lib/team.ts, src/lib/team.test.ts, src/components/undertow/TeamLoad.tsx
+### Changed
+- Navigation is now Portfolio · Triage · Outreach · Analytics · Team with the shared sticky header and portfolio totals unchanged on every page; the sliding tab indicator sizes itself from the number of views.
+- The team-load line was removed from the Triage headline and now lives on the Team page; Triage keeps only the stalled-reply pointer.
+  Files: src/routes/index.tsx, src/components/undertow/Portfolio.tsx
+### Fixed
+- Portfolio summary values no longer collide with the next column at narrow widths (eight columns only from 1536px, four below), and analytics widget footers keep their date range on one line.
+  Files: src/components/undertow/WorkspaceHeader.tsx, src/components/undertow/Analytics.tsx
+### Limitations
+- No schema changes: weekly history is generated in the browser from live values, so it is illustrative rather than recorded. Publication not requested.

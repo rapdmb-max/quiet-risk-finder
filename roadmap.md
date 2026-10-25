@@ -21,11 +21,11 @@
 - [x] Increase the text scale and tighten the left and right gutters on every page.
 
 # Analytics page
-- [ ] Add Analytics as a fourth page, keeping the shared top bar.
-- [ ] One widget per portfolio metric, each showing progress over time with change versus four weeks ago.
-- [ ] Verify both demo roles, mark history as sample data, add tests and update docs.
+- [x] Add Analytics as a fourth page, keeping the shared top bar.
+- [x] One widget per portfolio metric, each showing progress over time with change versus four weeks ago.
+- [x] Verify both demo roles, mark history as sample data, add tests and update docs.
 
 # Team load page
-- [ ] Move the Triage team-load line into its own page.
-- [ ] One widget per CSM with ARR responsible and per-CSM metrics; include accounts with no owner.
-- [ ] Verify Marta sees the team and Devon sees only his own card; add tests and update docs.
+- [x] Move the Triage team-load line into its own page.
+- [x] One widget per CSM with ARR responsible and per-CSM metrics; include accounts with no owner.
+- [x] Verify Marta sees the team and Devon sees only his own card; add tests and update docs.
