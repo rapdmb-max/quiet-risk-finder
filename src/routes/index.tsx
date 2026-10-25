@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 type View = "brief" | "tracker" | "portfolio";
-const VIEWS = [["brief", "Brief & triage"], ["tracker", "Outreach"], ["portfolio", "Portfolio"]] as const;
+const VIEWS = [["brief", "Triage"], ["tracker", "Outreach"], ["portfolio", "Portfolio"]] as const;
 const ROLES: [Role, string][] = [["Marta", "Head of CS"], ["Devon", "CSM"]];
 const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
   role === "Marta"
