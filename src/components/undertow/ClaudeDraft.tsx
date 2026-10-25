@@ -75,7 +75,7 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
       <div className="flex flex-wrap items-center gap-2"><p className="text-meta font-semibold text-muted-ink">{l.heading}</p><AiBadge /></div>
       <p className="mt-2 whitespace-pre-wrap leading-relaxed" aria-live="polite">{proposal}</p>
       {complete && <div className="mt-3 flex gap-2">
-        <Button size="sm" className="text-meta font-normal" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> {l.apply}</Button>
+        <Button size="sm" className="spring-press bg-ink text-ink-foreground hover:opacity-90 text-meta font-semibold" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> {l.apply}</Button>
         <Button variant="ghost" size="sm" className="text-meta font-normal" onClick={() => { setProposal(""); setComplete(false); }}><X /> Discard</Button>
       </div>}
     </div>}
