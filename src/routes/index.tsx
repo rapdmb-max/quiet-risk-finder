@@ -308,10 +308,6 @@ function Index() {
                       <h2 className="text-[17px] font-semibold text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h2>
                     ) : role === "Marta" ? (
                       <>
-                        <h2 className="text-[17px] font-semibold">
-                          <span className="font-mono">{formatArr(g.arrAtRisk, currency)}</span> a year at risk across {g.open} account{g.open === 1 ? "" : "s"}.{" "}
-                          {g.unowned.length > 0 && <span className="text-risk">{g.unowned.length} {g.unowned.length === 1 ? "has" : "have"} no owner.</span>}
-                        </h2>
                         <p className="mt-2 text-muted-ink">
                           Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
                           {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
