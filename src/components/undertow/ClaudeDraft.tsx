@@ -42,6 +42,7 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
       const decoder = new TextDecoder();
       let buffer = "";
       let done = false;
+      let acc = "";
       while (true) {
         const chunk = await reader.read();
         buffer += decoder.decode(chunk.value, { stream: !chunk.done });
@@ -49,14 +50,14 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
         for (const line of lines) {
           if (!line.trim()) continue;
           const event = JSON.parse(line);
-          if (event.type === "delta") setProposal((text) => text + event.text);
+          if (event.type === "delta") { acc += event.text; setProposal(acc); }
           if (event.type === "error") throw new Error(event.message);
           if (event.type === "done") done = true;
         }
         if (chunk.done) break;
       }
       if (!done) throw new Error("The draft was interrupted. Your original message is unchanged.");
-      if (autoKeep) { setProposal((text) => { onApply(text); return ""; }); } else setComplete(true);
+      if (autoKeep) { onApply(acc); setProposal(""); } else setComplete(true);
     } catch (err) {
       if (controller.signal.aborted) setError("Draft stopped. Your original message is unchanged.");
       else setError(err instanceof Error ? err.message : "Claude could not complete this draft.");
