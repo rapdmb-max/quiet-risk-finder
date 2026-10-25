@@ -49,19 +49,19 @@ export function ClaudeDraft({ accountId, onApply }: { accountId: string; onApply
 
   return <div className="mt-3 border-t pt-3">
     <div className="flex items-center justify-between gap-2">
-      <Button variant="ghost" size="sm" className="text-[13px] font-normal" disabled={pending} onClick={generate}>
+      <Button variant="ghost" size="sm" className="text-meta font-normal" disabled={pending} onClick={generate}>
         {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Sparkles />} {pending ? "Claude is drafting…" : "Draft with Claude"}
       </Button>
-      {pending && <Button variant="outline" size="sm" className="text-[13px] font-normal" onClick={() => abort.current?.abort()}><Square /> Stop</Button>}
+      {pending && <Button variant="outline" size="sm" className="text-meta font-normal" onClick={() => abort.current?.abort()}><Square /> Stop</Button>}
     </div>
     {proposal && <div className="mt-3">
-      <p className="text-[13px] font-semibold text-muted-ink">Claude’s draft</p>
+      <p className="text-meta font-semibold text-muted-ink">Claude’s draft</p>
       <p className="mt-2 whitespace-pre-wrap leading-relaxed" aria-live="polite">{proposal}</p>
       {complete && <div className="mt-3 flex gap-2">
-        <Button size="sm" className="text-[13px] font-normal" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> Use draft</Button>
-        <Button variant="ghost" size="sm" className="text-[13px] font-normal" onClick={() => { setProposal(""); setComplete(false); }}><X /> Discard</Button>
+        <Button size="sm" className="text-meta font-normal" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> Use draft</Button>
+        <Button variant="ghost" size="sm" className="text-meta font-normal" onClick={() => { setProposal(""); setComplete(false); }}><X /> Discard</Button>
       </div>}
     </div>}
-    {error && <p role="alert" className="mt-2 text-[13px] text-muted-ink">{error}</p>}
+    {error && <p role="alert" className="mt-2 text-meta text-muted-ink">{error}</p>}
   </div>;
 }

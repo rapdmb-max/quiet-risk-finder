@@ -22,17 +22,17 @@ export function WorkspaceHeader({ title, list, outreach, role, load, activeSegme
   const summary = (id: Segment, label: string, value: string | number, note: string, risky = false) => (
     <Button key={label} variant="ghost" aria-pressed={activeSegment === id && id !== "all"} onClick={() => onSummary(id)}
       className={cn("h-auto min-h-24 min-w-0 flex-col items-start justify-start gap-1 whitespace-normal rounded-none border-b-2 px-0 py-3 text-left font-normal hover:bg-soft", activeSegment === id && id !== "all" ? "border-ink" : "border-transparent", risky && "text-risk")}>
-      <span className="text-[13px] text-muted-ink">{label}</span>
-      <span className="font-mono text-[28px] leading-tight">{load === "ready" ? value : "—"}</span>
-      <span className="text-[13px] text-muted-ink">{load === "ready" ? note : load === "error" ? "Unavailable" : "Reading portfolio…"}</span>
+      <span className="text-meta text-muted-ink">{label}</span>
+      <span className="font-mono text-headline leading-tight">{load === "ready" ? value : "—"}</span>
+      <span className="text-meta text-muted-ink">{load === "ready" ? note : load === "error" ? "Unavailable" : "Reading portfolio…"}</span>
     </Button>
   );
-  return <div className="mx-auto max-w-[1440px] px-5 pt-5 sm:px-8" data-testid="workspace-header">
+  return <div className="shell pt-5" data-testid="workspace-header">
     <div className="flex flex-wrap items-start justify-between gap-3 pb-4">
       <div><p className="eyebrow">{role === "Marta" ? "Team portfolio" : "Devon’s portfolio"} · Sample data</p><h1 className="headline mt-1">{title}</h1></div>
-      <p className="font-mono text-[13px] text-muted-ink">{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+      <p className="font-mono text-meta text-muted-ink">{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
     </div>
-    <section aria-label="Portfolio totals" className="grid grid-cols-2 gap-x-5 border-t sm:grid-cols-4 xl:grid-cols-8">
+    <section aria-label="Portfolio totals" className="grid grid-cols-2 gap-x-5 border-t sm:grid-cols-4 2xl:grid-cols-8">
       {summary("all", "Accounts", g.count, `${g.count} in ${role === "Marta" ? "the team’s" : "your"} book`)}
       {summary("all", "Total ARR", formatArr(g.arr, cur), "Annual recurring revenue")}
       {summary("risk", "At-risk ARR", formatArr(g.riskArr, cur), `${g.riskCount} accounts · ${g.riskPercent.toFixed(1)}% of ARR`, true)}

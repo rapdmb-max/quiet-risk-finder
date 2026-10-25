@@ -45,3 +45,8 @@
 - [x] Customer email paragraphs and separate Email Customer / Slack CSM recipient controls.
 - [x] 35 tests pass; browser verifies both demo roles, summaries, detail round-trip and 50 accounts after reload. No publication requested.
 - [x] Multi-select filters in both views, saved inline owner edits and simulated Slack nudge activity; 38 targeted tests pass.
+
+## Analytics and team load
+- [x] Analytics as a fifth page: one widget per portfolio metric with weekly history, change versus four weeks ago and a 6/12/26-week range; a widget opens that slice of the Portfolio ledger. Shared top bar kept.
+- [x] Team load moved out of the Triage headline into its own page: a card per owner with ARR responsible, share of book ARR, needs-action load bar and nine per-person metrics, plus a workload split; the no-owner pile is reported last.
+- [x] Marta sees the whole team and can open any owner's accounts; Devon sees only his own card. 17 new tests (56 total) pass; browser verified both widths, both roles, range switching, widget-to-ledger navigation and the owner jump.

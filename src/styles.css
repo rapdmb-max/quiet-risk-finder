@@ -91,21 +91,21 @@
     background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 15px;
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Type scale: 13 meta · 15 body · 17 title · 28 headline. Weights 400 / 600 only. No italics. */
+/* Type scale: 14 meta · 16 body · 19 title · 32 headline. Weights 400 / 600 only. No italics. */
 @utility eyebrow {
-  font-size: 13px;
+  font-size: var(--text-meta);
   font-weight: 600;
   color: var(--color-muted-ink);
 }
 
 @utility headline {
-  font-size: 28px;
-  line-height: 1.25;
+  font-size: var(--text-headline);
+  line-height: 1.2;
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -116,6 +116,14 @@
 
 @theme {
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --text-meta: 14px;
+  --text-meta--line-height: 1.45;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-title: 19px;
+  --text-title--line-height: 1.35;
+  --text-headline: 32px;
+  --text-headline--line-height: 1.18;
 }
 
 @utility spring-press {
@@ -133,7 +141,7 @@
   border: 1px solid var(--color-line);
   border-radius: 5px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-muted-ink);
   vertical-align: middle;
 }
@@ -156,4 +164,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Page shell: one container for every view — tighter gutters, wide enough for the 50-account ledger. */
+@utility shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 2200px;
+  padding-inline: clamp(16px, 2.2vw, 48px);
 }

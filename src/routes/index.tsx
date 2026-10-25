@@ -8,6 +8,8 @@ import { LevelTag, Logo } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Portfolio } from "@/components/undertow/Portfolio";
 import { WorkspaceHeader } from "@/components/undertow/WorkspaceHeader";
+import { Analytics } from "@/components/undertow/Analytics";
+import { TeamLoad } from "@/components/undertow/TeamLoad";
 import { Tracker, type Outreach } from "@/components/undertow/Tracker";
 import type { ActivityItem, BriefState } from "@/lib/undertow.server";
 import { Button } from "@/components/ui/button";
@@ -29,8 +31,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "brief" | "tracker" | "portfolio";
-const VIEWS = [["portfolio", "Portfolio"], ["brief", "Triage"], ["tracker", "Outreach"]] as const;
+type View = "brief" | "tracker" | "portfolio" | "analytics" | "team";
+const VIEWS = [["portfolio", "Portfolio"], ["brief", "Triage"], ["tracker", "Outreach"], ["analytics", "Analytics"], ["team", "Team"]] as const;
 const ROLES: [Role, string][] = [["Marta", "Head of CS"], ["Devon", "CSM"]];
 const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
   role === "Marta"
@@ -42,6 +44,7 @@ function Index() {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [portfolioSegment, setPortfolioSegment] = useState<Segment>("all");
   const [summaryRevision, setSummaryRevision] = useState(0);
+  const [ownerFocus, setOwnerFocus] = useState<{ owner: string; revision: number } | null>(null);
   const [role, setRole] = useState<Role>("Marta");
   const [list, setList] = useState<Account[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -138,6 +141,16 @@ function Index() {
     setSelectedId(filterAccounts(scoped, f)[0]?.id ?? null);
   };
 
+  /** Every summary — header, analytics widget — opens that slice of the portfolio. */
+  const openSegment = (segment: Segment) => {
+    setPortfolioSegment(segment);
+    setSummaryRevision((n) => n + 1);
+    setOwnerFocus(null);
+    setView("portfolio");
+    window.scrollTo({ top: 0 });
+  };
+
+
   const update = (id: string, patch: Partial<Account>) =>
     setList((l) => l.map((a) => (a.id === id ? { ...a, ...patch } : a)));
 
@@ -231,15 +244,15 @@ function Index() {
     <CurrencyProvider value={currency}>
       <div className="min-h-screen">
         <header className="sticky top-0 z-20 border-b bg-bg/85 backdrop-blur-md">
-          <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-4 px-5 py-3 sm:px-8">
-            <div className="flex items-center gap-2 text-[17px] font-semibold">
+          <div className="shell flex flex-wrap items-center gap-4 py-3">
+            <div className="flex items-center gap-2 text-title font-semibold">
               <Logo /> Undertow
             </div>
-            <div role="tablist" aria-label="View" className="relative grid grid-cols-3 rounded-lg border bg-panel p-1">
+            <div role="tablist" aria-label="View" className="relative grid rounded-lg border bg-panel p-1" style={{ gridTemplateColumns: `repeat(${VIEWS.length}, minmax(0, 1fr))` }}>
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc(33.333%-2.67px)] rounded-md bg-ink transition-transform duration-500 ease-spring"
-                style={{ transform: `translateX(${VIEWS.findIndex(([v]) => v === view) * 100}%)` }}
+                className="absolute inset-y-1 left-1 rounded-md bg-ink transition-transform duration-500 ease-spring"
+                style={{ width: `calc((100% - 8px) / ${VIEWS.length})`, transform: `translateX(${VIEWS.findIndex(([v]) => v === view) * 100}%)` }}
               />
               {VIEWS.map(([id, label]) => (
                 <button
@@ -247,17 +260,17 @@ function Index() {
                   role="tab"
                   aria-selected={view === id}
                   onClick={() => setView(id)}
-                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-[13px] transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
+                  className={cn("relative z-10 rounded-md px-3 py-1.5 text-meta transition-colors", view === id ? "text-ink-foreground" : "text-muted-ink hover:text-ink")}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-3 text-[13px] text-muted-ink">
+            <div className="ml-auto flex items-center gap-3 text-meta text-muted-ink">
               <button onClick={() => { setPalette(true); setQuery(""); }} className="spring-press hidden items-center gap-2 rounded-md border bg-panel px-3 py-1.5 md:flex">
                 Search accounts
               </button>
-              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-[13px]">
+              <div role="radiogroup" aria-label="Currency" className="flex rounded-md border bg-panel p-0.5 font-mono text-meta">
                 {(Object.keys(CURRENCIES) as Currency[]).map((cur) => (
                   <button
                     key={cur}
@@ -270,7 +283,7 @@ function Index() {
                   </button>
                 ))}
               </div>
-              <div role="radiogroup" aria-label="Viewing as" className="flex rounded-md border bg-panel p-0.5 text-[13px]">
+              <div role="radiogroup" aria-label="Viewing as" className="flex rounded-md border bg-panel p-0.5 text-meta">
                 {ROLES.map(([r, label]) => (
                   <button key={r} role="radio" aria-checked={role === r} onClick={() => switchRole(r)}
                     className={cn("rounded px-2.5 py-1", role === r ? "bg-ink font-semibold text-ink-foreground" : "hover:text-ink")}>
@@ -283,15 +296,15 @@ function Index() {
           <WorkspaceHeader title={VIEWS.find(([id]) => id === view)?.[1] ?? "Portfolio"}
             list={scoped} outreach={outreach} role={role} load={load}
             activeSegment={view === "portfolio" ? portfolioSegment : null}
-            onSummary={(segment) => { setPortfolioSegment(segment); setSummaryRevision((n) => n + 1); setView("portfolio"); window.scrollTo({ top: 0 }); }} />
+            onSummary={openSegment} />
         </header>
 
-        <div className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8">
+        <div className="shell py-6">
           <main className="min-w-0">
             {view === "portfolio" ? (
               <Portfolio key={role} list={scoped} outreach={outreach} role={role} segment={portfolioSegment} onSegmentChange={setPortfolioSegment} summaryRevision={summaryRevision} load={load} saving={saving} onAssign={assign}
                 onNudge={(a) => void act({ type: "nudge", accountId: a.id }, () => {}, `Nudge to ${a.owner} saved in Slack activity.`)}
-                onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
+                onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} ownerFocus={ownerFocus} />
             ) : view === "tracker" ? (
               <Tracker
                 items={outreach}
@@ -300,22 +313,37 @@ function Index() {
                 onOpen={(id) => { const a = scoped.find((x) => x.id === id); if (a) pick(a); }}
                 onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
               />
+            ) : view === "analytics" ? (
+              <Analytics list={scoped} outreach={outreach} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onSummary={openSegment} />
+            ) : view === "team" ? (
+              <TeamLoad
+                list={scoped}
+                outreach={outreach}
+                role={role}
+                load={load}
+                onRetry={() => { setLoad("loading"); void refresh(); }}
+                onOpenOwner={(owner) => {
+                  setPortfolioSegment("all");
+                  setOwnerFocus({ owner, revision: (ownerFocus?.revision ?? 0) + 1 });
+                  setView("portfolio");
+                  window.scrollTo({ top: 0 });
+                }}
+              />
             ) : (
               <>
                 <section className="flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
                     {load !== "ready" ? (
-                      <h2 className="text-[17px] font-semibold text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h2>
+                      <h2 className="text-title font-semibold text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h2>
                     ) : role === "Marta" ? (
-                      <>
+                      myStalled > 0 && (
                         <p className="mt-2 text-muted-ink">
-                          Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
-                          {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
+                          <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button> waiting on a customer.
                         </p>
-                      </>
+                      )
                     ) : (
                       <>
-                        <h2 className="text-[17px] font-semibold">
+                        <h2 className="text-title font-semibold">
                           {myOpen.length === 0 ? "Nothing in your book needs you today." : `${myOpen.length} of your accounts need${myOpen.length === 1 ? "s" : ""} you today.`}
                         </h2>
                         <p className="mt-2 text-muted-ink">
@@ -333,11 +361,11 @@ function Index() {
                         aria-selected={filter === f.id}
                         onClick={() => changeFilter(f.id)}
                         className={cn(
-                          "spring-press rounded-md px-4 py-1.5 text-[13px]",
+                          "spring-press rounded-md px-4 py-1.5 text-meta",
                           filter === f.id ? "bg-ink text-ink-foreground" : "text-muted-ink hover:text-ink",
                         )}
                       >
-                        {f.label} <span className="ml-1.5 font-mono text-[13px] opacity-70">{c[f.id]}</span>
+                        {f.label} <span className="ml-1.5 font-mono text-meta opacity-70">{c[f.id]}</span>
                       </button>
                     ))}
                   </div>
@@ -346,9 +374,9 @@ function Index() {
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   {role === "Marta" && <MultiFilter label="Owner" values={triageOwners} onChange={setTriageOwners} options={CSMS.map((c) => ({ value: c, label: c }))}/>}
                   <MultiFilter label="Risk" values={triageRisks} onChange={setTriageRisks} options={[{ value: "high", label: "High" }, { value: "rising", label: "Rising" }, { value: "calm", label: "Healthy" }]}/>
-                  <label className="flex items-center gap-2 text-[13px] text-muted-ink">Sort<select aria-label="Sort triage" value={triageSort} onChange={(e) => setTriageSort(e.target.value as Sort)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="risk">Risk first</option><option value="arr-desc">ARR · highest first</option><option value="arr-asc">ARR · lowest first</option><option value="contact-oldest">Contact · oldest first</option><option value="contact-newest">Contact · newest first</option><option value="name-asc">Account · A–Z</option><option value="name-desc">Account · Z–A</option></select></label>
-                  {(triageOwners.length > 0 || triageRisks.length > 0) && <Button variant="ghost" className="text-[13px] font-normal" onClick={() => { setTriageOwners([]); setTriageRisks([]); }}>Clear filters</Button>}
-                  <span className="font-mono text-[13px] text-muted-ink">{visible.length} accounts</span>
+                  <label className="flex items-center gap-2 text-meta text-muted-ink">Sort<select aria-label="Sort triage" value={triageSort} onChange={(e) => setTriageSort(e.target.value as Sort)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="risk">Risk first</option><option value="arr-desc">ARR · highest first</option><option value="arr-asc">ARR · lowest first</option><option value="contact-oldest">Contact · oldest first</option><option value="contact-newest">Contact · newest first</option><option value="name-asc">Account · A–Z</option><option value="name-desc">Account · Z–A</option></select></label>
+                  {(triageOwners.length > 0 || triageRisks.length > 0) && <Button variant="ghost" className="text-meta font-normal" onClick={() => { setTriageOwners([]); setTriageRisks([]); }}>Clear filters</Button>}
+                  <span className="font-mono text-meta text-muted-ink">{visible.length} accounts</span>
                 </div>
                 <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
                   {/* Pane 2: list, one line per account like the Slack brief */}
@@ -382,17 +410,17 @@ function Index() {
                             selected?.id === a.id ? "border-l-ink bg-soft" : "border-l-transparent",
                           )}
                         >
-                          <span className="w-5 pt-px font-mono text-[13px] text-muted-ink">{i + 1}</span>
+                          <span className="w-5 pt-px font-mono text-meta text-muted-ink">{i + 1}</span>
                           <span className="min-w-0 flex-1">
                             <span className="flex items-baseline gap-2">
                               <span aria-label={lvl} className={cn("size-2 shrink-0 self-center rounded-full", dot[lvl])} />
                               <span className="truncate font-semibold">{a.name}</span>
-                              <span className="ml-auto shrink-0 font-mono text-[13px] text-muted-ink">{formatArr(a.arr, currency)}</span>
+                              <span className="ml-auto shrink-0 font-mono text-meta text-muted-ink">{formatArr(a.arr, currency)}</span>
                             </span>
-                            <span className="mt-0.5 block truncate text-[13px] text-muted-ink">
+                            <span className="mt-0.5 block truncate text-meta text-muted-ink">
                               {a.status === "handled" ? a.handledNote : a.reason}
                             </span>
-                            <span className="mt-1 block text-[13px]">
+                            <span className="mt-1 block text-meta">
                               {a.underRadar && a.status === "open" ? (
                                 <span className="font-semibold">No owner · under the radar</span>
                               ) : (
@@ -404,7 +432,7 @@ function Index() {
                         {role === "Marta" && a.status === "open" && a.owner === "Unassigned" && (
                           <div className="flex items-center gap-2 px-4 pb-3 pl-12">
                             <select aria-label={`Assign ${a.name}`} defaultValue="" onChange={(e) => assign(a.id, e.target.value)}
-                              className="rounded-md border bg-panel px-2 py-1 text-[13px]">
+                              className="rounded-md border bg-panel px-2 py-1 text-meta">
                               <option value="" disabled>Assign to…</option>
                               {csms.map((x) => <option key={x} value={x}>{x} ({g.workload[x] ?? 0} open)</option>)}
                             </select>
@@ -427,7 +455,7 @@ function Index() {
                 </div>
               </>
             )}
-            <p className="mt-12 text-center text-[13px] text-muted-ink">
+            <p className="mt-12 text-center text-meta text-muted-ink">
               Sample companies and people are fictional; actions are saved. Email, Slack and PDF sending are simulated. Currency rates are illustrative.
 
             </p>
@@ -435,7 +463,7 @@ function Index() {
         </div>
 
         <Dialog open={Boolean(portfolioAccount) && view === "portfolio"} onOpenChange={(open) => { if (!open) setPortfolioId(null); }}>
-          <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-[860px] overflow-y-auto p-0">
+          <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-[1040px] overflow-y-auto p-0">
             <DialogTitle className="sr-only">{portfolioAccount?.name ?? "Account detail"}</DialogTitle>
             {portfolioAccount && detailFor(portfolioAccount)}
           </DialogContent>
@@ -445,7 +473,7 @@ function Index() {
         <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div
             className={cn(
-              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-[13px] text-ink-foreground",
+              "island toast-shadow overflow-hidden whitespace-nowrap bg-ink text-meta text-ink-foreground",
               toast ? "max-w-[92vw] rounded-2xl px-5 py-3 opacity-100" : "w-0 rounded-full px-0 py-3 opacity-0",
             )}
           >
@@ -470,7 +498,7 @@ function Index() {
                   if (e.key === "Escape") setPalette(false);
                 }}
                 placeholder="Jump to an account…"
-                className="w-full border-b bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-muted-ink"
+                className="w-full border-b bg-transparent px-5 py-4 text-body outline-none placeholder:text-muted-ink"
               />
               <ul className="max-h-[320px] overflow-auto p-2">
                 {results.length === 0 && <li className="p-4 text-muted-ink">No account by that name.</li>}

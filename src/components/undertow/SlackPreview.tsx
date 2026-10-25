@@ -20,7 +20,7 @@ function Bot({ time, children }: { time: string; children: React.ReactNode }) {
       <div className="min-w-0 flex-1">
         <p>
           <span className="font-semibold">Undertow</span>
-          <span className="ml-2 text-[13px] text-muted-ink">{time}</span>
+          <span className="ml-2 text-meta text-muted-ink">{time}</span>
         </p>
         {children}
       </div>
@@ -53,13 +53,13 @@ export function SlackPreview({ open, onOpenBrief, onSeeWhy, onAssign, onRemind, 
             <li key={a.id}>
               <span className="font-semibold">{a.name}</span> ({formatArr(a.arr, currency)}): {a.reason.charAt(0).toLowerCase() + a.reason.slice(1)}
               {a.owner === "Unassigned" ? " · no owner" : ` · ${a.owner}`}
-              <button onClick={() => onReachOut(a.id)} className="ml-2 rounded border px-2 py-0.5 text-[13px] font-semibold hover:bg-soft">
+              <button onClick={() => onReachOut(a.id)} className="ml-2 rounded border px-2 py-0.5 text-meta font-semibold hover:bg-soft">
                 Reach out
               </button>
             </li>
           ))}
         </ol>
-        <p className="mt-3 text-[13px] text-muted-ink">
+        <p className="mt-3 text-meta text-muted-ink">
           Why these: signals from Intercom, product usage, HubSpot and Slack, compared with each account's own normal.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
