@@ -9,7 +9,7 @@ Single source of truth for project-wide decisions. Update immediately when a dec
 - Verdicts are one plain sentence; no risk scores or percentages of "health"
 
 ## Architecture
-- Frontend only (React + TS + Tailwind); sample data in src/data/accounts.ts; no backend, no auth, no real integrations
+- Account data/actions remain a frontend prototype with no app login or real sending; Claude drafts are generated live through a server-only Lovable Cloud integration from fixed sample account evidence.
 - Companies and people in sample data are fictional; show a small line: "Clickable prototype with sample data. Companies and people are fictional."
 
 ## Naming

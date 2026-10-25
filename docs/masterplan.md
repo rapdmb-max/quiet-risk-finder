@@ -30,7 +30,7 @@ Secondary users: CSMs like Devon, who act on assigned accounts. Senior variant: 
 - Actions: assign owner, "I've reached out", "Not a real risk"
 - Slack preview: Monday brief message and a mid-week alert
 
-**Not in the prototype:** real integrations, login, risk model, settings, sending messages.
+**Not in the prototype:** real customer-data integrations, login, risk model, settings, sending messages. Claude email drafting is a live, human-reviewed exception; it never sends messages or changes account status.
 
 ## 6. Success metrics
 - Time to first action after opening the brief: under 2 minutes

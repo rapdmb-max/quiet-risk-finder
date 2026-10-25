@@ -8,5 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
-- Undertow is frontend-only: sample data lives in src/data/accounts.ts and brief rules (filters, counts, headline) in src/lib/brief.ts — keeps the prototype backend-free and the rules testable.
+- Account data and actions remain a frontend prototype; Claude draft generation is the sole live integration, isolated in server-only AI modules behind a same-origin streaming endpoint to keep credentials and prompts private.
+- Claude uses native Messages through Lovable AI Gateway; terminal provider access denials persist in a server-only Cloud table so reloads cannot replay blocked calls.
 - Product docs live in /docs (masterplan, tasks, rules, changelog); mark tasks and log changes there after each task group.
