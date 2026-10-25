@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { contactAge, outreachFor, portfolioRows, portfolioSummary, type Segment, type Sort } from "@/lib/portfolio";
 import { isStalled, type Role } from "@/lib/brief";
 import { Button } from "@/components/ui/button";
+import { MultiFilter } from "./MultiFilter";
 
 interface Props { list: Account[]; outreach: Outreach[]; role: Role; onOpen: (id: string) => void; load: "loading" | "ready" | "error"; onRetry: () => void }
 const labels: Record<Segment, string> = { all: "All accounts", risk: "At risk", unassigned: "Unassigned at risk", contacted: "Contact recorded", overdue: "No contact · 30+ days", never: "Never contacted", waiting: "Awaiting replies", stalled: "Stalled · 5+ days" };
@@ -17,13 +18,13 @@ export function Portfolio({ list, outreach, role, onOpen, load, onRetry }: Props
   const cur = useCurrency();
   const [segment, setSegment] = useState<Segment>("all");
   const [query, setQuery] = useState("");
-  const [owner, setOwner] = useState("all");
-  const [risk, setRisk] = useState<Level | "all">("all");
+  const [owner, setOwner] = useState<string[]>([]);
+  const [risk, setRisk] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("risk");
   const g = portfolioSummary(list, outreach);
   const rows = portfolioRows(list, outreach, { segment, query, owner, risk, sort });
-  const filtered = segment !== "all" || query !== "" || owner !== "all" || risk !== "all";
-  const reset = () => { setSegment("all"); setQuery(""); setOwner("all"); setRisk("all"); };
+  const filtered = segment !== "all" || query !== "" || owner.length > 0 || risk.length > 0;
+  const reset = () => { setSegment("all"); setQuery(""); setOwner([]); setRisk([]); };
   const summary = (id: Segment, label: string, value: string | number, note: string, risky = false) => (
     <Button variant="ghost" aria-pressed={segment === id} onClick={() => { reset(); setSegment(id); }}
       className={cn("h-auto min-h-24 min-w-0 flex-col items-start justify-start gap-1 whitespace-normal rounded-none border-b-2 px-0 py-4 text-left font-normal hover:bg-transparent", segment === id ? "border-ink" : "border-transparent", risky && "text-risk")}>
@@ -56,8 +57,8 @@ export function Portfolio({ list, outreach, role, onOpen, load, onRetry }: Props
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3 border-b pb-4">
         <label className="relative min-w-48 flex-1 sm:max-w-80"><Search className="absolute left-3 top-2.5 size-4 text-muted-ink" /><span className="sr-only">Search portfolio</span><input aria-label="Search portfolio" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search accounts…" className="h-9 w-full rounded-md border bg-panel pl-9 pr-3 text-[13px] outline-none focus-visible:ring-1 focus-visible:ring-ring" /></label>
-        {role === "Marta" && <label className="flex items-center gap-2 text-[13px] text-muted-ink">Owner<select aria-label="Filter by owner" value={owner} onChange={(e) => setOwner(e.target.value)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="all">All owners</option>{CSMS.map((c) => <option key={c}>{c}</option>)}</select></label>}
-        <label className="flex items-center gap-2 text-[13px] text-muted-ink">Risk<select aria-label="Filter by risk" value={risk} onChange={(e) => setRisk(e.target.value as Level | "all")} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="all">All levels</option>{Object.entries(levels).map(([id, text]) => <option value={id} key={id}>{text}</option>)}</select></label>
+        {role === "Marta" && <MultiFilter label="Owner" values={owner} onChange={setOwner} options={CSMS.map((c) => ({ value: c, label: c }))}/>}
+        <MultiFilter label="Risk" values={risk} onChange={setRisk} options={Object.entries(levels).map(([value, label]) => ({ value, label }))}/>
         <label className="ml-auto flex items-center gap-2 text-[13px] text-muted-ink">Sort<select aria-label="Sort accounts" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="risk">Risk first</option><option value="arr-desc">ARR · highest first</option><option value="arr-asc">ARR · lowest first</option><option value="contact-oldest">Contact · oldest first</option><option value="contact-newest">Contact · newest first</option></select></label>
       </div>
       {load === "error" ? <div role="alert" className="py-16 text-center"><p>Portfolio couldn’t load.</p><Button variant="outline" onClick={onRetry} className="mt-3">Try again</Button></div> : load === "loading" ? <div aria-busy="true" className="py-16 text-muted-ink">Reading your accounts…</div> : (

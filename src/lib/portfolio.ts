@@ -3,7 +3,7 @@ import type { Outreach } from "@/data/outreach";
 import { isStalled } from "./brief";
 
 export type Segment = "all" | "risk" | "unassigned" | "contacted" | "overdue" | "never" | "waiting" | "stalled";
-export type Sort = "risk" | "arr-desc" | "arr-asc" | "contact-oldest" | "contact-newest";
+export type Sort = "risk" | "arr-desc" | "arr-asc" | "contact-oldest" | "contact-newest" | "name-asc" | "name-desc";
 export const DAY = 86_400_000;
 export const NEVER_CONTACTED = "No customer contact recorded";
 
@@ -53,12 +53,14 @@ export function portfolioSummary(list: Account[], items: Outreach[], now = Date.
     waitingAccounts: new Set(waiting.map((o) => o.accountId)).size,
   };
 }
-export function portfolioRows(list: Account[], items: Outreach[], options: { segment: Segment; query: string; owner: string; risk: Level | "all"; sort: Sort }, now = Date.now()) {
+export function portfolioRows(list: Account[], items: Outreach[], options: { segment: Segment; query: string; owner: string | string[]; risk: Level | "all" | string[]; sort: Sort }, now = Date.now()) {
   const rank = { high: 0, rising: 1, calm: 2 };
   return list.filter((a) => matchesSegment(a, options.segment, items, now)
     && a.name.toLowerCase().includes(options.query.trim().toLowerCase())
-    && (options.owner === "all" || a.owner === options.owner)
-    && (options.risk === "all" || a.level === options.risk)).sort((a, b) => {
+    && (Array.isArray(options.owner) ? options.owner.length === 0 || options.owner.includes(a.owner) : options.owner === "all" || a.owner === options.owner)
+    && (Array.isArray(options.risk) ? options.risk.length === 0 || options.risk.includes(a.level) : options.risk === "all" || a.level === options.risk)).sort((a, b) => {
+    if (options.sort === "name-asc") return a.name.localeCompare(b.name);
+    if (options.sort === "name-desc") return b.name.localeCompare(a.name);
     if (options.sort === "arr-desc") return b.arr - a.arr || a.name.localeCompare(b.name);
     if (options.sort === "arr-asc") return a.arr - b.arr || a.name.localeCompare(b.name);
     if (options.sort.startsWith("contact")) {
