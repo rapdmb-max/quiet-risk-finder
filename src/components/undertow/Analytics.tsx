@@ -6,6 +6,34 @@ import { RANGES, analyticsTrends, formatDelta, formatMetric, type MetricTrend, t
 import type { Segment } from "@/lib/portfolio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { portfolioProjection } from "@/lib/exposure";
+import { AiBadge, ClaudeDraft } from "./ClaudeDraft";
+
+function AiProjection({ list, scope }: { list: Account[]; scope: string }) {
+  const currency = useCurrency();
+  const [text, setText] = useState("");
+  const p = portfolioProjection(list);
+  const fig = (label: string, v: number) => <div><dt className="text-meta text-muted-ink">{label}</dt><dd className="font-mono text-title">{formatArr(v, currency)}</dd></div>;
+  return (
+    <section aria-label="AI projection" className="mt-6 rounded-lg border border-dashed bg-panel p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-title font-semibold">Next-quarter projection</h3>
+        <AiBadge />
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {fig("At-risk ARR", p.riskArr)}
+        {fig("Projected loss if nothing changes", p.expectedLoss)}
+        {fig("Recoverable by acting this week", p.salvageable)}
+        {fig(`Sitting with ${p.unownedCount} unowned`, p.unownedExpectedLoss)}
+      </dl>
+      {text && <p className="mt-4 max-w-[900px] whitespace-pre-wrap leading-relaxed">{text}</p>}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-meta text-muted-ink">Figures: sample model from risk level, signals and contact gaps. Narrative: Claude reads only these figures and the top accounts.</p>
+        <ClaudeDraft accountId="portfolio" kind="projection" scope={scope} bordered={false} autoKeep idleLabel={text ? "Regenerate" : "Generate projection"} onApply={setText} />
+      </div>
+    </section>
+  );
+}
 
 const tone: Record<MetricTrend["trend"], string> = {
   improving: "text-calm",
@@ -76,7 +104,9 @@ export function Analytics({
   load,
   onRetry,
   onSummary,
+  scope = "all",
 }: {
+  scope?: string;
   list: Account[];
   outreach: Outreach[];
   load: "loading" | "ready" | "error";
@@ -113,6 +143,8 @@ export function Analytics({
           ))}
         </div>
       </div>
+
+      {load === "ready" && <AiProjection list={list} scope={scope} />}
 
       {load === "error" && (
         <div className="mt-6 rounded-lg border bg-panel p-8 text-center text-muted-ink">
