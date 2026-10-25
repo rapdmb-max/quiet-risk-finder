@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, Sparkles, Square, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { DraftKind, Playbook } from "@/lib/ai/draft-policy";
 
-export function ClaudeDraft({ accountId, onApply }: { accountId: string; onApply: (text: string) => void }) {
+const LABELS: Record<DraftKind, { idle: string; busy: string; heading: string; apply: string }> = {
+  email: { idle: "Draft with Claude", busy: "Claude is drafting…", heading: "Claude’s draft", apply: "Use draft" },
+  slack: { idle: "Draft nudge with Claude", busy: "Claude is drafting…", heading: "Claude’s nudge", apply: "Use nudge" },
+  callprep: { idle: "Prepare talking points", busy: "Claude is preparing…", heading: "Talking points", apply: "Keep" },
+};
+
+export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagement", onApply, bordered = true }: { accountId: string; kind?: DraftKind; playbook?: Playbook; onApply: (text: string) => void; bordered?: boolean }) {
   const [pending, setPending] = useState(false);
   const [proposal, setProposal] = useState("");
   const [error, setError] = useState("");
   const [complete, setComplete] = useState(false);
   const abort = useRef<AbortController | null>(null);
+  const l = LABELS[kind];
   useEffect(() => () => abort.current?.abort(), []);
 
   async function generate() {
@@ -16,7 +24,7 @@ export function ClaudeDraft({ accountId, onApply }: { accountId: string; onApply
     abort.current = controller;
     setPending(true); setProposal(""); setError(""); setComplete(false);
     try {
-      const response = await fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId }), signal: controller.signal });
+      const response = await fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId, kind, playbook }), signal: controller.signal });
       if (!response.ok) {
         const body = await response.json();
         throw new Error(body.message ?? "Claude could not start this draft.");
@@ -47,18 +55,18 @@ export function ClaudeDraft({ accountId, onApply }: { accountId: string; onApply
     } finally { abort.current = null; setPending(false); }
   }
 
-  return <div className="mt-3 border-t pt-3">
+  return <div className={bordered ? "mt-3 border-t pt-3" : ""}>
     <div className="flex items-center justify-between gap-2">
       <Button variant="ghost" size="sm" className="text-meta font-normal" disabled={pending} onClick={generate}>
-        {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Sparkles />} {pending ? "Claude is drafting…" : "Draft with Claude"}
+        {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Sparkles />} {pending ? l.busy : l.idle}
       </Button>
       {pending && <Button variant="outline" size="sm" className="text-meta font-normal" onClick={() => abort.current?.abort()}><Square /> Stop</Button>}
     </div>
     {proposal && <div className="mt-3">
-      <p className="text-meta font-semibold text-muted-ink">Claude’s draft</p>
+      <p className="text-meta font-semibold text-muted-ink">{l.heading}</p>
       <p className="mt-2 whitespace-pre-wrap leading-relaxed" aria-live="polite">{proposal}</p>
       {complete && <div className="mt-3 flex gap-2">
-        <Button size="sm" className="text-meta font-normal" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> Use draft</Button>
+        <Button size="sm" className="text-meta font-normal" onClick={() => { onApply(proposal); setProposal(""); setComplete(false); }}><Check /> {l.apply}</Button>
         <Button variant="ghost" size="sm" className="text-meta font-normal" onClick={() => { setProposal(""); setComplete(false); }}><X /> Discard</Button>
       </div>}
     </div>}

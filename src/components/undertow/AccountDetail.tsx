@@ -8,6 +8,8 @@ import type { ActivityItem } from "@/lib/undertow.server";
 import { contactAge } from "@/lib/portfolio";
 import { formatEmail } from "@/lib/email-format";
 import { Button } from "@/components/ui/button";
+import { PLAYBOOKS, PLAYBOOK_LABELS, type Playbook } from "@/lib/ai/draft-policy";
+import { exposure } from "@/lib/exposure";
 
 interface Props {
   account: Account;
@@ -28,6 +30,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const [channel, setChannel] = useState<"Email" | "Slack">("Email");
   const [pdf, setPdf] = useState(true);
   const [draft, setDraft] = useState(() => formatEmail(a.suggestion));
+  const [slack, setSlack] = useState(() => `${a.name} needs attention: ${a.verdict}`);
+  const [playbook, setPlaybook] = useState<Playbook>("reengagement");
+  const [callPrep, setCallPrep] = useState("");
+  const risk = exposure(a);
   const currency = useCurrency();
   const handled = a.status === "handled";
   const age = contactAge(a);
@@ -68,6 +74,12 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               {words[pointing] ?? pointing} signals, from {(words[tools] ?? String(tools)).toLowerCase()} tools, pointing the same way.
             </p>
           )}
+          <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line/60 pt-3 text-meta">
+            <div><dt className="text-muted-ink">Churn likelihood</dt><dd className="font-mono text-title">{Math.round(risk.probability * 100)}%</dd></div>
+            <div><dt className="text-muted-ink">Expected loss</dt><dd className="font-mono text-title">{formatArr(risk.expectedLoss, currency)}</dd></div>
+            <div><dt className="text-muted-ink">Saved if you act this week</dt><dd className="font-mono text-title">{formatArr(risk.salvageable, currency)}</dd></div>
+          </dl>
+          <p className="mt-2 text-meta text-muted-ink">Sample estimate from risk level, signals and days without contact.</p>
         </div>
       )}
 
@@ -106,6 +118,16 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
       {!handled && (
         <>
           <section className="mt-8">
+            <h3 className="eyebrow">Call prep</h3>
+            <div className="mt-3 rounded-lg border p-5">
+              {callPrep
+                ? <p className="whitespace-pre-wrap leading-relaxed">{callPrep}</p>
+                : <p className="text-meta text-muted-ink">Three talking points for your next call, following the {PLAYBOOK_LABELS[playbook].toLowerCase()} playbook.</p>}
+              <ClaudeDraft key={`prep-${playbook}`} accountId={a.id} kind="callprep" playbook={playbook} onApply={setCallPrep} />
+            </div>
+          </section>
+
+          <section className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="eyebrow">Reach out</h3>
               <div role="radiogroup" aria-label="Channel" className="flex rounded-md border p-0.5 text-meta">
@@ -117,19 +139,29 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                 ))}
               </div>
             </div>
+            <div role="radiogroup" aria-label="Playbook" className="mt-3 flex flex-wrap items-center gap-2 text-meta">
+              <span className="text-muted-ink">Playbook</span>
+              {PLAYBOOKS.map((p) => (
+                <button key={p} role="radio" aria-checked={playbook === p} onClick={() => setPlaybook(p)}
+                  className={cn("rounded-md border px-2.5 py-1", playbook === p ? "border-ink font-semibold" : "text-muted-ink hover:text-ink")}>
+                  {PLAYBOOK_LABELS[p]}
+                </button>
+              ))}
+            </div>
             <div className="mt-3 rounded-lg border p-5">
               <p className="text-meta text-muted-ink">
                 To: {channel === "Email" ? `${firstName ?? "contact"} at ${a.name}` : a.owner === "Unassigned" ? "#cs-team (nudge the team to pick it up)" : `${a.owner} in Slack (nudge the owner)`}
               </p>
               <textarea
                 aria-label="Message"
-                value={channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`}
-                onChange={(e) => channel === "Email" && setDraft(e.target.value)}
-                readOnly={channel === "Slack"}
+                value={channel === "Email" ? draft : slack}
+                onChange={(e) => channel === "Email" ? setDraft(e.target.value) : setSlack(e.target.value)}
                 rows={channel === "Email" ? 8 : 4}
                 className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
               />
-              {channel === "Email" && <ClaudeDraft accountId={a.id} onApply={(text) => setDraft(formatEmail(text))} />}
+              {channel === "Email"
+                ? <ClaudeDraft key={`email-${playbook}`} accountId={a.id} kind="email" playbook={playbook} onApply={(text) => setDraft(formatEmail(text))} />
+                : <ClaudeDraft key={`slack-${playbook}`} accountId={a.id} kind="slack" playbook={playbook} onApply={setSlack} />}
               {channel === "Email" && emailConnected && (
                 <label className="mt-3 flex items-center gap-2 text-meta">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
@@ -138,7 +170,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               )}
               <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
                 <div className="flex gap-2">
-                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : slack); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                     className="rounded-md border px-3 py-1.5 text-meta hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
                   {channel === "Email" && !emailConnected ? (
                     <button onClick={onConnectEmail} className="spring-press rounded-md bg-ink px-3 py-1.5 text-meta font-semibold text-ink-foreground">Connect email</button>
