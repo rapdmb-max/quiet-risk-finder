@@ -31,13 +31,13 @@ interface MetricDef {
  */
 export const METRICS: MetricDef[] = [
   { id: "accounts", label: "Accounts", note: "In the book", unit: "count", better: "up", weekly: 0.008, wobble: 0.5, segment: "all", pick: (g) => g.count },
-  { id: "arr", label: "Total ARR", note: "Annual recurring revenue", unit: "money", better: "up", weekly: 0.011, wobble: 0.6, segment: "all", pick: (g) => g.arr },
-  { id: "riskArr", label: "At-risk ARR", note: "High or rising accounts", unit: "money", better: "down", weekly: -0.02, wobble: 0.7, segment: "risk", pick: (g) => g.riskArr },
+  { id: "arr", label: "Total ARR", note: "Recurring revenue", unit: "money", better: "up", weekly: 0.011, wobble: 0.6, segment: "all", pick: (g) => g.arr },
+  { id: "riskArr", label: "At-risk ARR", note: "High or rising", unit: "money", better: "down", weekly: -0.02, wobble: 0.7, segment: "risk", pick: (g) => g.riskArr },
   { id: "unassigned", label: "Unassigned at risk", note: "Risk nobody owns", unit: "count", better: "down", weekly: -0.06, wobble: 0.8, segment: "unassigned", pick: (g) => g.unassignedCount },
-  { id: "contactAge", label: "Avg. contact age", note: "Days since customer contact", unit: "days", better: "down", weekly: -0.02, wobble: 0.5, segment: "contacted", pick: (g) => g.averageContactAge ?? 0 },
-  { id: "overdue", label: "No contact · 30+ days", note: "Contacted, gone quiet", unit: "count", better: "down", weekly: -0.03, wobble: 0.7, segment: "overdue", pick: (g) => g.overdueCount },
+  { id: "contactAge", label: "Avg. contact age", note: "Days since contact", unit: "days", better: "down", weekly: -0.02, wobble: 0.5, segment: "contacted", pick: (g) => g.averageContactAge ?? 0 },
+  { id: "overdue", label: "No contact · 30+ days", note: "Gone quiet", unit: "count", better: "down", weekly: -0.03, wobble: 0.7, segment: "overdue", pick: (g) => g.overdueCount },
   { id: "never", label: "Never contacted", note: "No contact recorded", unit: "count", better: "down", weekly: -0.05, wobble: 0.9, segment: "never", pick: (g) => g.neverCount },
-  { id: "waiting", label: "Awaiting replies", note: "Messages with no answer", unit: "count", better: "down", weekly: 0.01, wobble: 1.2, segment: "waiting", pick: (g) => g.waitingCount },
+  { id: "waiting", label: "Awaiting replies", note: "No answer yet", unit: "count", better: "down", weekly: 0.01, wobble: 1.2, segment: "waiting", pick: (g) => g.waitingCount },
 ];
 
 /** Stable pseudo-random in [0,1) so a metric and week always draw the same history. */
