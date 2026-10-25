@@ -17,6 +17,11 @@ const items: Outreach[] = [
   { id: "m2", accountId: "a", account: "A", channel: "Email", to: "Sam", by: "Devon", daysAgo: 4, pdf: false, status: "waiting" },
 ];
 describe("portfolio rules", () => {
+  it("multiple owners and risk levels match any choice within each filter, and both filters together", () => {
+    expect(portfolioRows(list, items, { segment: "all", query: "", owner: ["Devon", "Unassigned"], risk: ["high", "rising"], sort: "arr-desc" }).map((a) => a.id)).toEqual(["b", "a"]);
+    expect(portfolioRows(list, items, { segment: "all", query: "", owner: ["Devon", "Aisha"], risk: ["high", "rising"], sort: "arr-desc" }).map((a) => a.id)).toEqual(["a"]);
+    expect(portfolioRows(list, items, { segment: "all", query: "", owner: [], risk: [], sort: "arr-desc" }).length).toBe(3);
+  });
   it("totals sum all accounts and risk ARR includes handled outreach", () => {
     expect(portfolioSummary(list, items)).toMatchObject({ count: 3, arr: 73000, riskCount: 2, riskArr: 70000, unassignedCount: 1, unassignedArr: 52000 });
     expect(portfolioSummary(list, items).riskPercent).toBeCloseTo(70000 / 73000 * 100);

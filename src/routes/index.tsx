@@ -11,6 +11,8 @@ import { Tracker, type Outreach } from "@/components/undertow/Tracker";
 import type { ActivityItem, BriefState } from "@/lib/undertow.server";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { MultiFilter } from "@/components/undertow/MultiFilter";
+import { portfolioRows, type Sort } from "@/lib/portfolio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +45,9 @@ function Index() {
   const [load, setLoad] = useState<"loading" | "ready" | "error">("loading");
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<Filter>("week");
+  const [triageOwners, setTriageOwners] = useState<string[]>([]);
+  const [triageRisks, setTriageRisks] = useState<string[]>([]);
+  const [triageSort, setTriageSort] = useState<Sort>("risk");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [toast, setToast] = useState<string | null>(null);
@@ -104,7 +109,7 @@ function Index() {
   const sorted = [...list].sort((a, b) => levelRank[a.level] - levelRank[b.level] || b.arr * (a.underRadar ? 1 : 0.5) - a.arr * (b.underRadar ? 1 : 0.5) || Number(b.underRadar) - Number(a.underRadar));
   const scoped = scopeFor(sorted, role);
   const FILTERS = filtersFor(role);
-  const visible = filterAccounts(scoped, filter);
+  const visible = portfolioRows(filterAccounts(scoped, filter), outreach, { segment: "all", query: "", owner: triageOwners, risk: triageRisks, sort: triageSort });
   const c = { week: filterAccounts(scoped, "week").length, radar: filterAccounts(scoped, "radar").length, handled: filterAccounts(scoped, "handled").length };
   const g = glance(list);
   const myOpen = filterAccounts(scoped, "week");
@@ -116,6 +121,8 @@ function Index() {
   const switchRole = (r: Role) => {
     setRole(r);
     setPortfolioId(null);
+    setTriageOwners([]);
+    setTriageRisks([]);
     setFilter("week");
     setSelectedId(filterAccounts(scopeFor(sorted, r), "week")[0]?.id ?? null);
     say(r === "Marta" ? "Viewing as Marta, Head of CS." : "Viewing as Devon, CSM. Only his accounts.");
@@ -333,6 +340,13 @@ function Index() {
                   </div>
                 </section>
 
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  {role === "Marta" && <MultiFilter label="Owner" values={triageOwners} onChange={setTriageOwners} options={CSMS.map((c) => ({ value: c, label: c }))}/>}
+                  <MultiFilter label="Risk" values={triageRisks} onChange={setTriageRisks} options={[{ value: "high", label: "High" }, { value: "rising", label: "Rising" }, { value: "calm", label: "Healthy" }]}/>
+                  <label className="flex items-center gap-2 text-[13px] text-muted-ink">Sort<select aria-label="Sort triage" value={triageSort} onChange={(e) => setTriageSort(e.target.value as Sort)} className="h-9 rounded-md border bg-panel px-2 text-ink"><option value="risk">Risk first</option><option value="arr-desc">ARR · highest first</option><option value="arr-asc">ARR · lowest first</option><option value="contact-oldest">Contact · oldest first</option><option value="contact-newest">Contact · newest first</option><option value="name-asc">Account · A–Z</option><option value="name-desc">Account · Z–A</option></select></label>
+                  {(triageOwners.length > 0 || triageRisks.length > 0) && <Button variant="ghost" className="text-[13px] font-normal" onClick={() => { setTriageOwners([]); setTriageRisks([]); }}>Clear filters</Button>}
+                  <span className="font-mono text-[13px] text-muted-ink">{visible.length} accounts</span>
+                </div>
                 <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
                   {/* Pane 2: list, one line per account like the Slack brief */}
                   <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
