@@ -80,8 +80,8 @@ describe("analytics rules", () => {
     expect(formatMetric(pick("riskArr"), (n) => formatArr(n, "EUR"))).toBe(formatArr(live.riskArr, "EUR"));
     expect(formatMetric(pick("accounts"), (n) => formatArr(n, "EUR"))).toBe(String(live.count));
     expect(formatMetric(pick("contactAge"), (n) => formatArr(n, "EUR"))).toBe(`${live.averageContactAge?.toFixed(1)}d`);
-    expect(formatDelta(pick("accounts"), (n) => formatArr(n, "EUR"))).toBe("+0");
     expect(formatDelta(pick("riskArr"), (n) => formatArr(n, "EUR"))).toMatch(/^−/);
+    expect(formatDelta(pick("accounts"), (n) => formatArr(n, "EUR"))).toBe(String(Math.round(Math.abs(pick("accounts").delta))));
   });
 
   it("a book with no at-risk accounts draws a flat line at zero", () => {

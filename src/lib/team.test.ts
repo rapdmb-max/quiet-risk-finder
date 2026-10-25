@@ -38,7 +38,7 @@ describe("team load rules", () => {
 
   it("needs action per person is exactly the Triage definition for their own accounts", () => {
     for (const owner of ["Devon", "Marta", "Unassigned"] as const) {
-      expect(loadFor(owner, list, items, NOW).open).toBe(filterAccounts(scopeFor(list, owner === "Marta" ? "Marta" : "Devon"), "week").length);
+      expect(loadFor(owner, list, items, NOW).open).toBe(filterAccounts(list.filter((a) => a.owner === owner), "week").length);
     }
     expect(loadFor("Devon", list, items, NOW).open).toBe(2);
     expect(loadFor("Marta", list, items, NOW).open).toBe(1);
