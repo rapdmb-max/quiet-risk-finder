@@ -9,14 +9,13 @@ import { isStalled, type Role } from "@/lib/brief";
 import { Button } from "@/components/ui/button";
 import { MultiFilter } from "./MultiFilter";
 
-interface Props { list: Account[]; outreach: Outreach[]; role: Role; onOpen: (id: string) => void; load: "loading" | "ready" | "error"; onRetry: () => void; saving: boolean; onAssign: (id: string, owner: string) => void; onNudge: (account: Account) => void }
+interface Props { list: Account[]; outreach: Outreach[]; role: Role; segment: Segment; onSegmentChange: (segment: Segment) => void; summaryRevision: number; onOpen: (id: string) => void; load: "loading" | "ready" | "error"; onRetry: () => void; saving: boolean; onAssign: (id: string, owner: string) => void; onNudge: (account: Account) => void }
 const labels: Record<Segment, string> = { all: "All accounts", risk: "At risk", unassigned: "Unassigned at risk", contacted: "Contact recorded", overdue: "No contact · 30+ days", never: "Never contacted", waiting: "Awaiting replies", stalled: "Stalled · 5+ days" };
 const levels = { high: "High", rising: "Rising", calm: "Healthy" };
 const dot = { high: "bg-risk", rising: "bg-rising", calm: "bg-calm" };
 
-export function Portfolio({ list, outreach, role, onOpen, load, onRetry, saving, onAssign, onNudge }: Props) {
+export function Portfolio({ list, outreach, role, segment, onSegmentChange: setSegment, summaryRevision, onOpen, load, onRetry, saving, onAssign, onNudge }: Props) {
   const cur = useCurrency();
-  const [segment, setSegment] = useState<Segment>("all");
   const [query, setQuery] = useState("");
   const [owner, setOwner] = useState<string[]>([]);
   const [risk, setRisk] = useState<string[]>([]);
@@ -25,31 +24,9 @@ export function Portfolio({ list, outreach, role, onOpen, load, onRetry, saving,
   const rows = portfolioRows(list, outreach, { segment, query, owner, risk, sort });
   const filtered = segment !== "all" || query !== "" || owner.length > 0 || risk.length > 0;
   const reset = () => { setSegment("all"); setQuery(""); setOwner([]); setRisk([]); };
-  const summary = (id: Segment, label: string, value: string | number, note: string, risky = false) => (
-    <Button variant="ghost" aria-pressed={segment === id} onClick={() => { reset(); setSegment(id); }}
-      className={cn("h-auto min-h-24 min-w-0 flex-col items-start justify-start gap-1 whitespace-normal rounded-none border-b-2 px-0 py-4 text-left font-normal hover:bg-transparent", segment === id ? "border-ink" : "border-transparent", risky && "text-risk")}>
-      <span className="text-[13px] text-muted-ink">{label}</span>
-      <span className="font-mono text-[28px] leading-tight">{load === "ready" ? value : "—"}</span>
-      <span className="text-[13px] text-muted-ink">{load === "ready" ? note : "Reading portfolio…"}</span>
-    </Button>
-  );
   return (
     <div className="pane-enter">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div><p className="eyebrow">{role === "Marta" ? "Team portfolio" : "Devon’s portfolio"} · Sample data</p><h1 className="headline mt-1">Portfolio</h1></div>
-        <p className="font-mono text-[13px] text-muted-ink">{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
-      </header>
-      <section aria-label="Portfolio totals" className="mt-5 grid grid-cols-2 gap-x-5 border-y sm:grid-cols-4 xl:grid-cols-8">
-        {summary("all", "Accounts", g.count, `${g.count} in ${role === "Marta" ? "the team’s" : "your"} book`)}
-        {summary("all", "Total ARR", formatArr(g.arr, cur), "Annual recurring revenue")}
-        {summary("risk", "At-risk ARR", formatArr(g.riskArr, cur), `${g.riskCount} accounts · ${g.riskPercent.toFixed(1)}% of ARR`, true)}
-        {summary("unassigned", "Unassigned at risk", g.unassignedCount, `${formatArr(g.unassignedArr, cur)} ARR`, g.unassignedCount > 0)}
-        {summary("contacted", "Avg. contact age", g.averageContactAge === null ? "—" : `${g.averageContactAge.toFixed(1)}d`, `Across ${g.contactedCount} contacted accounts`)}
-        {summary("overdue", "No contact · 30+ days", g.overdueCount, `${formatArr(g.overdueArr, cur)} ARR`)}
-        {summary("never", "Never contacted", g.neverCount, `${formatArr(g.neverArr, cur)} ARR`)}
-        {summary("waiting", "Awaiting replies", g.waitingCount, `${g.waitingAccounts} accounts · ${g.stalledCount} stalled`)}
-      </section>
-      <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-baseline gap-3"><h2 className="text-[17px] font-semibold">{labels[segment]}</h2><span data-testid="portfolio-result" className="font-mono text-[13px] text-muted-ink">{rows.length} / {g.count} · {formatArr(rows.reduce((n, a) => n + a.arr, 0), cur)} ARR</span>
           {segment === "waiting" && g.stalledCount > 0 && <Button variant="link" onClick={() => setSegment("stalled")} className="h-auto p-0 text-[13px] font-normal">{g.stalledCount} stalled messages</Button>}
         </div>
