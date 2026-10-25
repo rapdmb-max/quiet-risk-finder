@@ -131,6 +131,31 @@
   &:active { transform: scale(0.96); }
 }
 
+/* Primary action the user should press: solid fill, soft glow, slow sheen sweep. Colour stays neutral (ink), not risk. */
+@utility cta-ai {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 220ms var(--ease-spring), box-shadow 220ms var(--ease-spring), background-color 150ms, opacity 150ms;
+  box-shadow: 0 10px 26px -12px color-mix(in oklab, var(--ink) 65%, transparent);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(115deg, transparent 32%, color-mix(in oklab, var(--panel) 42%, transparent) 50%, transparent 68%);
+    transform: translateX(-130%);
+    animation: cta-sheen 2.8s ease-in-out infinite;
+  }
+  &:hover::after { animation-duration: 1.4s; }
+  &:active { transform: scale(0.96); }
+}
+@keyframes cta-sheen {
+  from { transform: translateX(-130%); }
+  55% { transform: translateX(130%); }
+  to { transform: translateX(130%); }
+}
+
 @utility kbd {
   display: inline-grid;
   place-items: center;
