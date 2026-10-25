@@ -247,34 +247,7 @@ function Index() {
           </div>
         </header>
 
-        <div className="mx-auto grid max-w-[1440px] gap-8 px-5 py-10 sm:px-8 min-[1180px]:grid-cols-[200px_1fr]">
-          {/* Pane 1: sidebar */}
-          <aside className="hidden min-[1180px]:block">
-            <nav className="sticky top-24 space-y-1" aria-label="Filters">
-              <p className="eyebrow mb-3 px-3">{role === "Marta" ? "Team queue" : "My queue"}</p>
-              {FILTERS.map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => changeFilter(f.id)}
-                  aria-pressed={view === "brief" && filter === f.id}
-                  className={cn(
-                    "spring-press flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-[15px]",
-                    view === "brief" && filter === f.id ? "bg-ink font-semibold text-ink-foreground" : "text-muted-ink hover:bg-soft hover:text-ink",
-                  )}
-                >
-                  {f.label}
-                  <span className="font-mono text-[13px] opacity-70">{c[f.id]}</span>
-                </button>
-              ))}
-              <div className="mt-8 space-y-2 border-t px-3 pt-5 text-[13px] text-muted-ink">
-                <p className="eyebrow mb-2">Shortcuts</p>
-                {[["J / K", "Move"], ["E", "Reached out"], ["X", "Not a risk"], [role === "Marta" ? "1–3" : "1–2", "Filters"], ["⌘K", "Search"]].map(([k, l]) => (
-                  <p key={k} className="flex justify-between"><span>{l}</span><span className="font-mono">{k}</span></p>
-                ))}
-              </div>
-            </nav>
-          </aside>
-
+        <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8">
           <main className="min-w-0">
             {view === "portfolio" ? (
               <Portfolio list={sorted} onOpen={(id) => pick(list.find((x) => x.id === id)!)} />
