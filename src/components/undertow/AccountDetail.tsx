@@ -136,11 +136,11 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
       {!handled && (
         <>
           <section className="mt-8">
-            <h3 className="eyebrow">Call prep · AI</h3>
+            <h3 className="eyebrow">Customer summary · AI</h3>
             <div className="mt-3 rounded-lg border p-5">
               {callPrep
                 ? <><AiBadge /><p className="mt-2 whitespace-pre-wrap leading-relaxed">{callPrep}</p></>
-                : <p className="text-meta text-muted-ink">Three talking points for your next call, following the {PLAYBOOK_LABELS[playbook].toLowerCase()} playbook.</p>}
+                : <p className="text-meta text-muted-ink">Where this customer stands right now: the friction, what changed, and what to ask for, seen through the {PLAYBOOK_LABELS[playbook].toLowerCase()} playbook.</p>}
               <ClaudeDraft key={`prep-${playbook}`} accountId={a.id} kind="callprep" playbook={playbook} onApply={setCallPrep} />
             </div>
           </section>

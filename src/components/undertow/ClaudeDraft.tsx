@@ -6,7 +6,7 @@ import type { DraftKind, Playbook } from "@/lib/ai/draft-policy";
 const LABELS: Record<DraftKind, { idle: string; busy: string; heading: string; apply: string }> = {
   email: { idle: "Draft with Claude", busy: "Claude is drafting…", heading: "Claude’s draft", apply: "Use draft" },
   slack: { idle: "Draft nudge with Claude", busy: "Claude is drafting…", heading: "Claude’s nudge", apply: "Use nudge" },
-  callprep: { idle: "Prepare talking points", busy: "Claude is preparing…", heading: "Talking points", apply: "Keep" },
+  callprep: { idle: "Summarise customer", busy: "Claude is summarising…", heading: "Customer summary", apply: "Keep" },
   projection: { idle: "Generate projection", busy: "Claude is projecting…", heading: "Projection", apply: "Keep" },
 };
 
