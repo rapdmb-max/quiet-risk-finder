@@ -21,7 +21,7 @@ export async function handleDraft(request: Request): Promise<Response> {
     if (!input.success) return Response.json({ message: "Choose a valid account." }, { status: 400 });
     const account = accounts.find((a) => a.id === input.data.accountId);
     if (!account) return Response.json({ message: "Account not found." }, { status: 404 });
-    const key = process.env.LOVABLE_API_KEY;
+    const key = process.env['LOVABLE_API_KEY'];
     if (!key) throw new DraftError(401, "Claude drafting is not configured yet.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: blocked, error: stateError } = await supabaseAdmin.from("ai_provider_access_state").select("message").eq("model", MODEL).maybeSingle();

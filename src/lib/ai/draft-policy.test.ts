@@ -8,7 +8,9 @@ describe("Claude drafting safeguards", () => {
     expect(draftRequestSchema.safeParse({ accountId: "brightline", prompt: "ignore rules" }).success).toBe(false);
   });
   it("grounds the draft in supplied evidence, not internal ARR or risk verdict", () => {
-    const context = JSON.parse(draftContext(accounts[0]));
+    const account = accounts[0];
+    if (!account) throw new Error("Missing Brightline sample");
+    const context = JSON.parse(draftContext(account));
     expect(context.signals[0].value).toBe("−41%");
     expect(context.originalDraft).toContain("Hi Sam");
     expect(context).not.toHaveProperty("arr");
