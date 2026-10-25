@@ -38,6 +38,7 @@
 - [ ] 4.8c Verify completed deployment and any additional PR acceptance checks (deployment pending; PR checks not supplied)
 
 ## Portfolio-first experience
+- [x] Shared sticky header across Portfolio, Triage and Outreach, with identical role-scoped totals and summary navigation; browser verified both roles and scrolling, 11 relevant tests pass.
 - [x] Portfolio opens first, with team/CSM totals, 50 saved samples and compact account rows.
 - [x] Actionable summary filters, owner/risk search, ARR/contact sorting and in-place detail preserve list context.
 - [x] Contact-age calculations exclude never-contacted accounts; risk is distinct from handled outreach.

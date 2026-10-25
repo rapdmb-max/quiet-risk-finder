@@ -7,12 +7,13 @@ import { cn } from "@/lib/utils";
 import { LevelTag, Logo } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Portfolio } from "@/components/undertow/Portfolio";
+import { WorkspaceHeader } from "@/components/undertow/WorkspaceHeader";
 import { Tracker, type Outreach } from "@/components/undertow/Tracker";
 import type { ActivityItem, BriefState } from "@/lib/undertow.server";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { MultiFilter } from "@/components/undertow/MultiFilter";
-import { portfolioRows, type Sort } from "@/lib/portfolio";
+import { portfolioRows, type Segment, type Sort } from "@/lib/portfolio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,6 +40,8 @@ const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
 function Index() {
   const [view, setView] = useState<View>("portfolio");
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
+  const [portfolioSegment, setPortfolioSegment] = useState<Segment>("all");
+  const [summaryRevision, setSummaryRevision] = useState(0);
   const [role, setRole] = useState<Role>("Marta");
   const [list, setList] = useState<Account[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -121,6 +124,7 @@ function Index() {
   const switchRole = (r: Role) => {
     setRole(r);
     setPortfolioId(null);
+    setPortfolioSegment("all");
     setTriageOwners([]);
     setTriageRisks([]);
     setFilter("week");
@@ -276,12 +280,16 @@ function Index() {
               </div>
             </div>
           </div>
+          <WorkspaceHeader title={VIEWS.find(([id]) => id === view)?.[1] ?? "Portfolio"}
+            list={scoped} outreach={outreach} role={role} load={load}
+            activeSegment={view === "portfolio" ? portfolioSegment : null}
+            onSummary={(segment) => { setPortfolioSegment(segment); setSummaryRevision((n) => n + 1); setView("portfolio"); window.scrollTo({ top: 0 }); }} />
         </header>
 
-        <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8">
           <main className="min-w-0">
             {view === "portfolio" ? (
-              <Portfolio key={role} list={scoped} outreach={outreach} role={role} load={load} saving={saving} onAssign={assign}
+              <Portfolio key={role} list={scoped} outreach={outreach} role={role} segment={portfolioSegment} onSegmentChange={setPortfolioSegment} summaryRevision={summaryRevision} load={load} saving={saving} onAssign={assign}
                 onNudge={(a) => void act({ type: "nudge", accountId: a.id }, () => {}, `Nudge to ${a.owner} saved in Slack activity.`)}
                 onRetry={() => { setLoad("loading"); void refresh(); }} onOpen={setPortfolioId} />
             ) : view === "tracker" ? (
@@ -296,17 +304,14 @@ function Index() {
               <>
                 <section className="flex flex-wrap items-end justify-between gap-6">
                   <div className="max-w-[780px]">
-                    <p className="font-mono text-[13px] text-muted-ink">
-                      Triage · {scoped.length} accounts watched
-                    </p>
                     {load !== "ready" ? (
-                      <h1 className="headline mt-2 text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h1>
+                      <h2 className="text-[17px] font-semibold text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h2>
                     ) : role === "Marta" ? (
                       <>
-                        <h1 className="headline mt-2">
+                        <h2 className="text-[17px] font-semibold">
                           <span className="font-mono">{formatArr(g.arrAtRisk, currency)}</span> a year at risk across {g.open} account{g.open === 1 ? "" : "s"}.{" "}
                           {g.unowned.length > 0 && <span className="text-risk">{g.unowned.length} {g.unowned.length === 1 ? "has" : "have"} no owner.</span>}
-                        </h1>
+                        </h2>
                         <p className="mt-2 text-muted-ink">
                           Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
                           {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
@@ -314,9 +319,9 @@ function Index() {
                       </>
                     ) : (
                       <>
-                        <h1 className="headline mt-2">
+                        <h2 className="text-[17px] font-semibold">
                           {myOpen.length === 0 ? "Nothing in your book needs you today." : `${myOpen.length} of your accounts need${myOpen.length === 1 ? "s" : ""} you today.`}
-                        </h1>
+                        </h2>
                         <p className="mt-2 text-muted-ink">
                           <span className="font-mono">{formatArr(myOpen.reduce((t, a) => t + a.arr, 0), currency)}</span> a year in your hands.
                           {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} customer gone quiet</button> after your last message.</>}
@@ -324,7 +329,7 @@ function Index() {
                       </>
                     )}
                   </div>
-                  <div role="tablist" aria-label="Queue" className="mt-6 inline-flex flex-wrap rounded-lg border bg-panel p-1">
+                  <div role="tablist" aria-label="Queue" className="inline-flex flex-wrap rounded-lg border bg-panel p-1">
                     {FILTERS.map((f) => (
                       <button
                         key={f.id}
@@ -351,7 +356,7 @@ function Index() {
                 </div>
                 <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
                   {/* Pane 2: list, one line per account like the Slack brief */}
-                  <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
+                  <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:col-span-5">
                     {load === "loading" && [0, 1, 2, 3].map((i) => (
                       <div key={i} aria-hidden className="border-b px-4 py-4 last:border-b-0">
                         <div className="h-4 w-2/3 animate-pulse rounded bg-soft" />

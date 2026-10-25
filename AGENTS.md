@@ -14,6 +14,7 @@
 - Claude uses native Messages through Lovable AI Gateway; terminal provider access denials persist in a server-only Cloud table so reloads cannot replay blocked calls.
 - Product docs live in /docs (masterplan, tasks, rules, changelog); mark tasks and log changes there after each task group.
 - Portfolio metrics and filters use pure shared rules; portfolio detail opens in place so the ledger retains filters and scroll position.
+- Render the workspace title and role-scoped portfolio totals once in the shared sticky header; summary actions open the Portfolio segment so every view retains the same context and calculations.
 - Sample expansion uses an idempotent data-import script, never page-load seeding; existing records and activity must remain intact.
 - Contact dates derive from the stored contact-age snapshot and its update timestamp; an explicit no-contact timeline record represents never-contacted accounts without schema changes.
 - Share checkbox multi-select controls and portfolio sorting rules between Portfolio and Triage; simulated nudges use the existing message activity type to avoid schema changes.

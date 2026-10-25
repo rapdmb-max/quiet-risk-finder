@@ -28,11 +28,11 @@ export function Tracker({ items, role, onReplied, onOpen, onEscalate }: Props) {
   return (
     <div className="pane-enter space-y-6">
       <div>
-        <h1 className="headline">
+        <h2 className="text-[17px] font-semibold">
           {stalled.length > 0
             ? `${stalled.length} customer${stalled.length === 1 ? " has" : "s have"} gone quiet on ${role === "Marta" ? "the team" : "you"}.`
             : waiting.length === 0 ? "No one to chase." : `Waiting on ${waiting.length} repl${waiting.length === 1 ? "y" : "ies"}.`}
-        </h1>
+        </h2>
         <p className="mt-1 text-muted-ink">
           {role === "Marta" ? "Everything the team sent from Undertow, and where to step in." : "Everything you sent from Undertow, and who still hasn't answered."}
         </p>
