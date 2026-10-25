@@ -107,7 +107,7 @@
   font-size: 28px;
   line-height: 1.25;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
 }
 
 @utility toast-shadow {
