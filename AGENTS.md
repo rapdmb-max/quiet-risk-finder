@@ -16,3 +16,4 @@
 - Portfolio metrics and filters use pure shared rules; portfolio detail opens in place so the ledger retains filters and scroll position.
 - Sample expansion uses an idempotent data-import script, never page-load seeding; existing records and activity must remain intact.
 - Contact dates derive from the stored contact-age snapshot and its update timestamp; an explicit no-contact timeline record represents never-contacted accounts without schema changes.
+- Share checkbox multi-select controls and portfolio sorting rules between Portfolio and Triage; simulated nudges use the existing message activity type to avoid schema changes.
