@@ -8,6 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
-- Account data and actions remain a frontend prototype; Claude draft generation is the sole live integration, isolated in server-only AI modules behind a same-origin streaming endpoint to keep credentials and prompts private.
+- Accounts, actions and outreach persist in Lovable Cloud, accessed only by server routes (`src/routes/api/brief.ts` → `src/lib/undertow.server.ts`). Business rules live in `src/lib/rules.ts`; add a rule there with a test before adding an action. Never grant tables to the browser.
+- Never add, rename or drop a table or column without asking the owner: the data model is a product decision (see docs/rules.md).
+- Claude draft generation is the live LLM integration, isolated in server-only AI modules behind a same-origin streaming endpoint to keep credentials and prompts private.
 - Claude uses native Messages through Lovable AI Gateway; terminal provider access denials persist in a server-only Cloud table so reloads cannot replay blocked calls.
 - Product docs live in /docs (masterplan, tasks, rules, changelog); mark tasks and log changes there after each task group.
