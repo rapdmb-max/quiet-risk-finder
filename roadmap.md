@@ -7,3 +7,8 @@
 - [x] Apply the pending persistence migration and verify the tables exist.
 - [x] Verify first-load sample data and reload persistence; run existing rules tests.
 - [x] Request publication of the verified app.
+
+# Portfolio-first experience
+- [ ] Open Portfolio by default with compact summaries and a searchable, sortable account ledger.
+- [ ] Expand to 50 saved sample accounts without replacing existing records or page-load seeding.
+- [ ] Verify summary rules, both demo roles, account detail round-trip and reload persistence; update docs.
