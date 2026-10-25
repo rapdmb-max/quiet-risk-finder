@@ -95,7 +95,8 @@ describe("analytics rules", () => {
     const labels = weekLabels(3, NOW);
     expect(labels).toHaveLength(3);
     expect(labels[2]).toBe(new Date(NOW).toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
-    expect(weekLabels(12, NOW)[0]).toBe(new Date(NOW - 11 * DAY).toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
+    // One label per week, so the oldest of twelve is eleven weeks back.
+    expect(weekLabels(12, NOW)[0]).toBe(new Date(NOW - 11 * 7 * DAY).toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
   });
 
   it("history walks back from the figure it is given", () => {
