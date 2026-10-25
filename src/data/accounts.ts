@@ -30,7 +30,7 @@ export interface Account {
   timeline: TimelineEvent[];
   suggestion: string;
   status: "open" | "handled";
-  handledNote?: string;
+  handledNote?: string | undefined;
 }
 
 export const CSMS = ["Unassigned", "Marta", "Devon", "Aisha", "Tomás"];

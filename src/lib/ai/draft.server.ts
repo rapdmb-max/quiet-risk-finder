@@ -19,7 +19,9 @@ export async function handleDraft(request: Request): Promise<Response> {
   try {
     const input = draftRequestSchema.safeParse(await request.json());
     if (!input.success) return Response.json({ message: "Choose a valid account." }, { status: 400 });
-    const account = accounts.find((a) => a.id === input.data.accountId);
+    // Draft from the saved account (owner, status, timeline as they are now); fall back to the sample if the database is down.
+    const { getAccount } = await import("@/lib/undertow.server");
+    const account = await getAccount(input.data.accountId).catch(() => accounts.find((a) => a.id === input.data.accountId) ?? null);
     if (!account) return Response.json({ message: "Account not found." }, { status: 404 });
     const key = process.env['LOVABLE_API_KEY'];
     if (!key) throw new DraftError(401, "Claude drafting is not configured yet.");
