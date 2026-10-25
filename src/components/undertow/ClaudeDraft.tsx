@@ -17,7 +17,7 @@ export function AiBadge({ edited = false }: { edited?: boolean }) {
   </span>;
 }
 
-export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagement", scope = "all", onApply, bordered = true, autoKeep = false, idleLabel }: { accountId: string; kind?: DraftKind; playbook?: Playbook; scope?: string; onApply: (text: string) => void; bordered?: boolean; autoKeep?: boolean; idleLabel?: string }) {
+export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagement", scope = "all", onApply, bordered = true, autoKeep = false, live = false, idleLabel, onBusy }: { accountId: string; kind?: DraftKind; playbook?: Playbook; scope?: string; onApply: (text: string) => void; bordered?: boolean; autoKeep?: boolean; live?: boolean; idleLabel?: string; onBusy?: (busy: boolean) => void }) {
   const [pending, setPending] = useState(false);
   const [proposal, setProposal] = useState("");
   const [error, setError] = useState("");
@@ -30,7 +30,7 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
     if (abort.current) return;
     const controller = new AbortController();
     abort.current = controller;
-    setPending(true); setProposal(""); setError(""); setComplete(false);
+    setPending(true); setProposal(""); setError(""); setComplete(false); onBusy?.(true);
     try {
       const response = await fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId, kind, playbook, scope }), signal: controller.signal });
       if (!response.ok) {
@@ -50,18 +50,18 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
         for (const line of lines) {
           if (!line.trim()) continue;
           const event = JSON.parse(line);
-          if (event.type === "delta") { acc += event.text; setProposal(acc); }
+          if (event.type === "delta") { acc += event.text; setProposal(acc); if (live) onApply(acc); }
           if (event.type === "error") throw new Error(event.message);
           if (event.type === "done") done = true;
         }
         if (chunk.done) break;
       }
       if (!done) throw new Error("The draft was interrupted. Your original message is unchanged.");
-      if (autoKeep) { onApply(acc); setProposal(""); } else setComplete(true);
+      if (autoKeep || live) { onApply(acc); setProposal(""); } else setComplete(true);
     } catch (err) {
       if (controller.signal.aborted) setError("Draft stopped. Your original message is unchanged.");
       else setError(err instanceof Error ? err.message : "Claude could not complete this draft.");
-    } finally { abort.current = null; setPending(false); }
+    } finally { abort.current = null; setPending(false); onBusy?.(false); }
   }
 
   return <div className={bordered ? "mt-3 border-t pt-3" : ""}>
@@ -71,7 +71,7 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
       </Button>
       {pending && <Button variant="outline" size="sm" className="text-meta font-normal" onClick={() => abort.current?.abort()}><Square /> Stop</Button>}
     </div>
-    {proposal && <div className="mt-3">
+    {proposal && !live && <div className="mt-3">
       <div className="flex flex-wrap items-center gap-2"><p className="text-meta font-semibold text-muted-ink">{l.heading}</p><AiBadge /></div>
       <p className="mt-2 whitespace-pre-wrap leading-relaxed" aria-live="polite">{proposal}</p>
       {complete && <div className="mt-3 flex gap-2">
