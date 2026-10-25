@@ -29,8 +29,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const [copied, setCopied] = useState(false);
   const [channel, setChannel] = useState<"Email" | "Slack">("Email");
   const [pdf, setPdf] = useState(true);
-  const [draft, setDraft] = useState(() => formatEmail(a.suggestion));
-  const [slack, setSlack] = useState(() => `${a.name} needs attention: ${a.verdict}`);
+  const [draft, setDraft] = useState("");
+  const [slack, setSlack] = useState("");
+  const [manual, setManual] = useState<"Email" | "Slack" | null>(null);
+  const [busy, setBusy] = useState(false);
   const [playbook, setPlaybook] = useState<Playbook>("reengagement");
   const [callPrep, setCallPrep] = useState("");
   const [aiEmail, setAiEmail] = useState(false);
@@ -42,6 +44,20 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const tools = new Set(a.signals.map((s) => s.source.split(" via ").pop())).size;
   const pointing = a.signals.filter((s) => s.severity !== "none").length;
   const firstName = a.suggestion.match(/^Hi (\w+)/)?.[1];
+  const message = channel === "Email" ? draft : slack;
+  const showBox = message.trim().length > 0 || manual === channel;
+  const canSend = message.trim().length > 0 && !busy;
+
+  // A Claude message belongs to the playbook that wrote it, so choosing a new playbook starts the draft again.
+  function choosePlaybook(p: Playbook) {
+    if (p === playbook) return;
+    setPlaybook(p);
+    if (aiEmail) setDraft("");
+    if (aiSlack) setSlack("");
+    setCallPrep("");
+    setManual(null);
+  }
+
 
 
   return (
