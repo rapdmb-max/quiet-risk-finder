@@ -62,9 +62,9 @@ function MetricWidget({ t, onOpen }: { t: MetricTrend; onOpen: (segment: Segment
       </span>
       <span className="font-mono text-headline leading-none">{formatMetric(t, fmt)}</span>
       <TrendChart points={t.points} className={tone[t.trend]} />
-      <span className="flex items-baseline justify-between gap-2 text-meta text-muted-ink">
-        <span>{t.note}</span>
-        <span className="font-mono">{t.labels[0]} → {last}</span>
+      <span className="flex h-4 items-baseline justify-between gap-2 overflow-hidden text-meta text-muted-ink">
+        <span className="truncate">{t.note}</span>
+        <span className="shrink-0 whitespace-nowrap font-mono">{t.labels[0]} → {last}</span>
       </span>
     </button>
   );

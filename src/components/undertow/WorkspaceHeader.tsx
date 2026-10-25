@@ -32,7 +32,7 @@ export function WorkspaceHeader({ title, list, outreach, role, load, activeSegme
       <div><p className="eyebrow">{role === "Marta" ? "Team portfolio" : "Devon’s portfolio"} · Sample data</p><h1 className="headline mt-1">{title}</h1></div>
       <p className="font-mono text-meta text-muted-ink">{new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
     </div>
-    <section aria-label="Portfolio totals" className="grid grid-cols-2 gap-x-5 border-t sm:grid-cols-4 xl:grid-cols-8">
+    <section aria-label="Portfolio totals" className="grid grid-cols-2 gap-x-5 border-t sm:grid-cols-4 2xl:grid-cols-8">
       {summary("all", "Accounts", g.count, `${g.count} in ${role === "Marta" ? "the team’s" : "your"} book`)}
       {summary("all", "Total ARR", formatArr(g.arr, cur), "Annual recurring revenue")}
       {summary("risk", "At-risk ARR", formatArr(g.riskArr, cur), `${g.riskCount} accounts · ${g.riskPercent.toFixed(1)}% of ARR`, true)}

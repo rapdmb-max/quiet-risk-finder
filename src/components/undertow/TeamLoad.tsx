@@ -21,7 +21,7 @@ function CsmCard({ r, role, onOpen }: { r: CsmLoad; role: Role; onOpen: (owner: 
   const title = unowned ? "No owner" : r.owner;
   const tag = unowned ? "Needs assigning" : r.owner === "Marta" ? "Head of CS" : "CSM";
   return (
-    <article className={cn("flex flex-col gap-4 rounded-lg border bg-panel p-5", unowned && "border-dashed")}>
+    <article className={cn("flex h-full flex-col gap-4 rounded-lg border bg-panel p-5", unowned && "border-dashed")}>
       <header className="flex items-baseline justify-between gap-3">
         <h3 className="flex items-baseline gap-2 text-title font-semibold">
           {title}
@@ -134,7 +134,11 @@ export function TeamLoad({
             </div>
           )}
           <div className="mt-3 grid gap-3 xl:grid-cols-2">
-            {rows.map((r) => <CsmCard key={r.owner} r={r} role={role} onOpen={onOpenOwner} />)}
+            {rows.map((r, i) => (
+              <div key={r.owner} className={cn("min-w-0", rows.length % 2 === 1 && i === rows.length - 1 && "xl:col-span-2")}>
+                <CsmCard r={r} role={role} onOpen={onOpenOwner} />
+              </div>
+            ))}
           </div>
         </>
       )}
