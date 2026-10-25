@@ -81,3 +81,8 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
   Files: src/components/undertow/WorkspaceHeader.tsx, src/components/undertow/Analytics.tsx
 ### Limitations
 - No schema changes: weekly history is generated in the browser from live values, so it is illustrative rather than recorded. Publication not requested.
+
+## 2026-10-25 — Sharper Claude use
+- Playbook toggle (Exec sponsor / Technical blocker / Re-engagement) shapes email, Slack nudge and call prep drafts.
+- Claude drafts Slack CSM nudges (with ARR and evidence) and three-line call prep.
+- Account verdict shows churn likelihood, expected loss and salvageable ARR (deterministic sample estimate, src/lib/exposure.ts, tested).
