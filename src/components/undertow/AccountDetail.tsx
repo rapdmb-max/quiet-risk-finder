@@ -8,6 +8,8 @@ import type { ActivityItem } from "@/lib/undertow.server";
 import { contactAge } from "@/lib/portfolio";
 import { formatEmail } from "@/lib/email-format";
 import { Button } from "@/components/ui/button";
+import { PLAYBOOKS, PLAYBOOK_LABELS, type Playbook } from "@/lib/ai/draft-policy";
+import { exposure } from "@/lib/exposure";
 
 interface Props {
   account: Account;
@@ -28,6 +30,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const [channel, setChannel] = useState<"Email" | "Slack">("Email");
   const [pdf, setPdf] = useState(true);
   const [draft, setDraft] = useState(() => formatEmail(a.suggestion));
+  const [slack, setSlack] = useState(() => `${a.name} needs attention: ${a.verdict}`);
+  const [playbook, setPlaybook] = useState<Playbook>("reengagement");
+  const [callPrep, setCallPrep] = useState("");
+  const risk = exposure(a);
   const currency = useCurrency();
   const handled = a.status === "handled";
   const age = contactAge(a);
@@ -68,6 +74,12 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               {words[pointing] ?? pointing} signals, from {(words[tools] ?? String(tools)).toLowerCase()} tools, pointing the same way.
             </p>
           )}
+          <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line/60 pt-3 text-meta">
+            <div><dt className="text-muted-ink">Churn likelihood</dt><dd className="font-mono text-title">{Math.round(risk.probability * 100)}%</dd></div>
+            <div><dt className="text-muted-ink">Expected loss</dt><dd className="font-mono text-title">{formatArr(risk.expectedLoss, currency)}</dd></div>
+            <div><dt className="text-muted-ink">Saved if you act this week</dt><dd className="font-mono text-title">{formatArr(risk.salvageable, currency)}</dd></div>
+          </dl>
+          <p className="mt-2 text-meta text-muted-ink">Sample estimate from risk level, signals and days without contact.</p>
         </div>
       )}
 
@@ -158,7 +170,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               )}
               <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
                 <div className="flex gap-2">
-                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                  <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : slack); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                     className="rounded-md border px-3 py-1.5 text-meta hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
                   {channel === "Email" && !emailConnected ? (
                     <button onClick={onConnectEmail} className="spring-press rounded-md bg-ink px-3 py-1.5 text-meta font-semibold text-ink-foreground">Connect email</button>
