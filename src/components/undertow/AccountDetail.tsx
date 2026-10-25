@@ -3,6 +3,7 @@ import { CSMS, formatArr, type Account } from "@/data/accounts";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Sparkline, Tag, severityText } from "./Bits";
+import { ClaudeDraft } from "./ClaudeDraft";
 
 interface Props {
   account: Account;
@@ -115,6 +116,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                 rows={4}
                 className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
               />
+              {channel === "Email" && <ClaudeDraft accountId={a.id} onApply={setDraft} />}
               {channel === "Email" && emailConnected && (
                 <label className="mt-3 flex items-center gap-2 text-[13px]">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />
