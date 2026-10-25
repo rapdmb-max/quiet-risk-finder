@@ -9,18 +9,23 @@ import { isStalled, type Role } from "@/lib/brief";
 import { Button } from "@/components/ui/button";
 import { MultiFilter } from "./MultiFilter";
 
-interface Props { list: Account[]; outreach: Outreach[]; role: Role; segment: Segment; onSegmentChange: (segment: Segment) => void; summaryRevision: number; onOpen: (id: string) => void; load: "loading" | "ready" | "error"; onRetry: () => void; saving: boolean; onAssign: (id: string, owner: string) => void; onNudge: (account: Account) => void }
+interface Props { list: Account[]; outreach: Outreach[]; role: Role; segment: Segment; onSegmentChange: (segment: Segment) => void; summaryRevision: number; onOpen: (id: string) => void; load: "loading" | "ready" | "error"; onRetry: () => void; saving: boolean; onAssign: (id: string, owner: string) => void; onNudge: (account: Account) => void; ownerFocus: { owner: string; revision: number } | null }
 const labels: Record<Segment, string> = { all: "All accounts", risk: "At risk", unassigned: "Unassigned at risk", contacted: "Contact recorded", overdue: "No contact · 30+ days", never: "Never contacted", waiting: "Awaiting replies", stalled: "Stalled · 5+ days" };
 const levels = { high: "High", rising: "Rising", calm: "Healthy" };
 const dot = { high: "bg-risk", rising: "bg-rising", calm: "bg-calm" };
 
-export function Portfolio({ list, outreach, role, segment, onSegmentChange: setSegment, summaryRevision, onOpen, load, onRetry, saving, onAssign, onNudge }: Props) {
+export function Portfolio({ list, outreach, role, segment, onSegmentChange: setSegment, summaryRevision, onOpen, load, onRetry, saving, onAssign, onNudge, ownerFocus }: Props) {
   const cur = useCurrency();
   const [query, setQuery] = useState("");
   const [owner, setOwner] = useState<string[]>([]);
   const [risk, setRisk] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("risk");
   useEffect(() => { setQuery(""); setOwner([]); setRisk([]); }, [summaryRevision]);
+  // A card on the Team page asked for this person's accounts.
+  useEffect(() => {
+    if (!ownerFocus) return;
+    setQuery(""); setRisk([]); setOwner([ownerFocus.owner]);
+  }, [ownerFocus?.revision]);
   const g = portfolioSummary(list, outreach);
   const rows = portfolioRows(list, outreach, { segment, query, owner, risk, sort });
   const filtered = segment !== "all" || query !== "" || owner.length > 0 || risk.length > 0;

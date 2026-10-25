@@ -8,6 +8,8 @@ import { LevelTag, Logo } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Portfolio } from "@/components/undertow/Portfolio";
 import { WorkspaceHeader } from "@/components/undertow/WorkspaceHeader";
+import { Analytics } from "@/components/undertow/Analytics";
+import { TeamLoad } from "@/components/undertow/TeamLoad";
 import { Tracker, type Outreach } from "@/components/undertow/Tracker";
 import type { ActivityItem, BriefState } from "@/lib/undertow.server";
 import { Button } from "@/components/ui/button";
@@ -29,8 +31,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "brief" | "tracker" | "portfolio";
-const VIEWS = [["portfolio", "Portfolio"], ["brief", "Triage"], ["tracker", "Outreach"]] as const;
+type View = "brief" | "tracker" | "portfolio" | "analytics" | "team";
+const VIEWS = [["portfolio", "Portfolio"], ["brief", "Triage"], ["tracker", "Outreach"], ["analytics", "Analytics"], ["team", "Team"]] as const;
 const ROLES: [Role, string][] = [["Marta", "Head of CS"], ["Devon", "CSM"]];
 const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
   role === "Marta"
@@ -42,6 +44,7 @@ function Index() {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [portfolioSegment, setPortfolioSegment] = useState<Segment>("all");
   const [summaryRevision, setSummaryRevision] = useState(0);
+  const [ownerFocus, setOwnerFocus] = useState<{ owner: string; revision: number } | null>(null);
   const [role, setRole] = useState<Role>("Marta");
   const [list, setList] = useState<Account[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -137,6 +140,16 @@ function Index() {
     setFilter(f);
     setSelectedId(filterAccounts(scoped, f)[0]?.id ?? null);
   };
+
+  /** Every summary — header, analytics widget — opens that slice of the portfolio. */
+  const openSegment = (segment: Segment) => {
+    setPortfolioSegment(segment);
+    setSummaryRevision((n) => n + 1);
+    setOwnerFocus(null);
+    setView("portfolio");
+    window.scrollTo({ top: 0 });
+  };
+
 
   const update = (id: string, patch: Partial<Account>) =>
     setList((l) => l.map((a) => (a.id === id ? { ...a, ...patch } : a)));
@@ -235,11 +248,11 @@ function Index() {
             <div className="flex items-center gap-2 text-title font-semibold">
               <Logo /> Undertow
             </div>
-            <div role="tablist" aria-label="View" className="relative grid grid-cols-3 rounded-lg border bg-panel p-1">
+            <div role="tablist" aria-label="View" className="relative grid rounded-lg border bg-panel p-1" style={{ gridTemplateColumns: `repeat(${VIEWS.length}, minmax(0, 1fr))` }}>
               <span
                 aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc(33.333%-2.67px)] rounded-md bg-ink transition-transform duration-500 ease-spring"
-                style={{ transform: `translateX(${VIEWS.findIndex(([v]) => v === view) * 100}%)` }}
+                className="absolute inset-y-1 left-1 rounded-md bg-ink transition-transform duration-500 ease-spring"
+                style={{ width: `calc((100% - 8px) / ${VIEWS.length})`, transform: `translateX(${VIEWS.findIndex(([v]) => v === view) * 100}%)` }}
               />
               {VIEWS.map(([id, label]) => (
                 <button
@@ -283,7 +296,7 @@ function Index() {
           <WorkspaceHeader title={VIEWS.find(([id]) => id === view)?.[1] ?? "Portfolio"}
             list={scoped} outreach={outreach} role={role} load={load}
             activeSegment={view === "portfolio" ? portfolioSegment : null}
-            onSummary={(segment) => { setPortfolioSegment(segment); setSummaryRevision((n) => n + 1); setView("portfolio"); window.scrollTo({ top: 0 }); }} />
+            onSummary={openSegment} />
         </header>
 
         <div className="shell py-6">
@@ -307,12 +320,11 @@ function Index() {
                     {load !== "ready" ? (
                       <h2 className="text-title font-semibold text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h2>
                     ) : role === "Marta" ? (
-                      <>
+                      myStalled > 0 && (
                         <p className="mt-2 text-muted-ink">
-                          Team load: {csms.map((x) => `${x} ${g.workload[x] ?? 0}`).join(" · ")}.
-                          {myStalled > 0 && <> <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button>.</>}
+                          <button onClick={() => setView("tracker")} className="font-semibold text-ink underline">{myStalled} reply stalled</button> waiting on a customer.
                         </p>
-                      </>
+                      )
                     ) : (
                       <>
                         <h2 className="text-title font-semibold">
