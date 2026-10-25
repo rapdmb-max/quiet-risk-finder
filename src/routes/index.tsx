@@ -292,15 +292,19 @@ function Index() {
                       </>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2 min-[1180px]:hidden">
+                  <div role="tablist" aria-label="Queue" className="mt-6 inline-flex flex-wrap rounded-lg border bg-panel p-1">
                     {FILTERS.map((f) => (
                       <button
                         key={f.id}
+                        role="tab"
+                        aria-selected={filter === f.id}
                         onClick={() => changeFilter(f.id)}
-                        aria-pressed={filter === f.id}
-                        className={cn("spring-press rounded-full border px-4 py-1.5", filter === f.id ? "border-ink bg-ink font-semibold text-ink-foreground" : "bg-panel hover:bg-soft")}
+                        className={cn(
+                          "spring-press rounded-md px-4 py-1.5 text-[13px]",
+                          filter === f.id ? "bg-ink text-ink-foreground" : "text-muted-ink hover:text-ink",
+                        )}
                       >
-                        {f.label} <span className="ml-1 font-mono text-[13px] opacity-70">{c[f.id]}</span>
+                        {f.label} <span className="ml-1.5 font-mono text-[13px] opacity-70">{c[f.id]}</span>
                       </button>
                     ))}
                   </div>
