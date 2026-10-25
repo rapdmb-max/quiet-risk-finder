@@ -19,7 +19,7 @@ const levelLabel: Record<Level, string> = { high: "High risk", rising: "Rising",
 
 export function LevelTag({ level }: { level: Level }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[13px]", levelStyle[level])}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-meta", levelStyle[level])}>
       <span className="size-1.5 rounded-full bg-current" />
       {levelLabel[level]}
     </span>
@@ -30,7 +30,7 @@ export function Tag({ children, solid }: { children: React.ReactNode; solid?: bo
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px]",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-meta",
         solid ? "bg-ink text-ink-foreground" : "bg-soft text-muted-ink",
       )}
     >
