@@ -30,7 +30,7 @@ function TrendChart({ points, className }: { points: number[]; className: string
     h - pad - ((v - min) / range) * (h - pad * 2),
   ] as const);
   const line = xy.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  const [lx, ly] = xy[xy.length - 1];
+  const lastY = h - pad - (((points[points.length - 1] ?? 0) - min) / range) * (h - pad * 2);
   return (
     <div className={cn("relative h-[60px] w-full", className)} aria-hidden>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full">

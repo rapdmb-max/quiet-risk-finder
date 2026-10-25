@@ -6,7 +6,7 @@ import type { Role } from "@/lib/brief";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
+function Stat({ label, value, className }: { label: string; value: string; className?: string | undefined }) {
   return (
     <div>
       <dt className="text-meta text-muted-ink">{label}</dt>

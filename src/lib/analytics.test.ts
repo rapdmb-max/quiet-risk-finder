@@ -69,7 +69,7 @@ describe("analytics rules", () => {
 
   it("change is measured against four weeks ago and judged by whether it helps", () => {
     const risk = pick("riskArr");
-    expect(risk.delta).toBe(risk.value - risk.points[risk.points.length - 5]);
+    expect(risk.delta).toBe(risk.value - (risk.points[risk.points.length - 5] ?? risk.value));
     expect(risk.trend).toBe(trendOf(risk.delta, "down"));
     expect(trendOf(-1, "down")).toBe("improving");
     expect(trendOf(-1, "up")).toBe("worsening");

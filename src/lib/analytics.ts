@@ -61,8 +61,9 @@ function round(unit: Unit, v: number) {
 export function weeklySeries(def: MetricDef, current: number, weeks: number, now = Date.now()): number[] {
   const points = [current];
   for (let i = 1; i < weeks; i++) {
+    const prev = points[i - 1] ?? current;
     const wobble = (rand(`${def.id}:${i}:${weeks}`) - 0.5) * 2 * def.wobble * Math.abs(def.weekly);
-    points.push(round(def.unit, points[i - 1] * (1 - def.weekly - wobble)));
+    points.push(round(def.unit, prev * (1 - def.weekly - wobble)));
   }
   return points.reverse();
 }
