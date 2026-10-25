@@ -176,11 +176,11 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                   <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : slack); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                     className="rounded-md border px-3 py-1.5 text-meta hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
                   {channel === "Email" && !emailConnected ? (
-                    <button onClick={onConnectEmail} className="spring-press rounded-md bg-ink px-3 py-1.5 text-meta font-semibold text-ink-foreground">Connect email</button>
+                    <button onClick={onConnectEmail} className="cta-ai rounded-md px-3 py-1.5">Connect email</button>
                   ) : (
                     <button
                       onClick={() => onSend(channel, channel === "Email" ? (firstName ?? "contact") : a.owner === "Unassigned" ? "#cs-team" : a.owner, channel === "Email" && pdf)}
-                      className="spring-press rounded-md bg-ink px-3 py-1.5 text-meta font-semibold text-ink-foreground"
+                      className="cta-ai rounded-md px-3 py-1.5"
                     >
                       {channel === "Email" ? "Send email" : "Send in Slack"}
                     </button>

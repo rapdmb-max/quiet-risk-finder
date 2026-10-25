@@ -66,7 +66,7 @@ export function ClaudeDraft({ accountId, kind = "email", playbook = "reengagemen
 
   return <div className={bordered ? "mt-3 border-t pt-3" : ""}>
     <div className="flex items-center justify-between gap-2">
-      <Button variant="ghost" size="sm" className="text-meta font-normal" disabled={pending} onClick={generate}>
+      <Button size="sm" disabled={pending} onClick={generate} className="cta-ai">
         {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Sparkles />} {pending ? l.busy : idleLabel ?? l.idle}
       </Button>
       {pending && <Button variant="outline" size="sm" className="text-meta font-normal" onClick={() => abort.current?.abort()}><Square /> Stop</Button>}
