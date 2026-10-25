@@ -58,3 +58,6 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 - Shared portfolio rules with nine tests; all 35 targeted tests pass. Browser checked summaries, 50-row reload, both demo roles, search/sorting and email/Slack recipients.
 ### Limitations
 - Persona switching remains a demo, not authenticated access control. Contact dates derive from existing contact-age snapshots; never-contacted samples use an explicit timeline marker. No schema changes or publication.
+
+### Changed
+- Removed the inline demo-delivery sentence from Reach out at the owner's request; the page footer still identifies simulated delivery.

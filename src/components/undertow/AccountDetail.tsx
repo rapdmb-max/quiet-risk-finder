@@ -136,8 +136,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                   Attach account summary PDF (<span className="font-mono">{formatArr(a.arr, currency)}/yr</span>, usage, tickets)
                 </label>
               )}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[13px] text-muted-ink">Demo sending only. No email, Slack message or PDF is delivered.</p>
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
                 <div className="flex gap-2">
                   <button onClick={() => { navigator.clipboard?.writeText(channel === "Email" ? draft : `${a.name} needs attention: ${a.verdict}`); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                     className="rounded-md border px-3 py-1.5 text-[13px] hover:bg-soft">{copied ? "Copied" : "Copy"}</button>
