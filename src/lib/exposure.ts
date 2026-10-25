@@ -30,3 +30,20 @@ export function exposure(a: Account) {
 }
 
 function round(n: number) { return Math.round(n * 100) / 100; }
+
+/** Portfolio forecast inputs: sums of per-account estimates; only open, at-risk accounts count. */
+export function portfolioProjection(list: Account[]) {
+  const open = list.filter((a) => a.status !== "handled" && a.level !== "calm" && a.handledReason !== "not_a_risk");
+  const rows = open.map((a) => ({ name: a.name, owner: a.owner, arr: a.arr, ...exposure(a) })).sort((x, y) => y.expectedLoss - x.expectedLoss);
+  const sum = (r: typeof rows, k: "arr" | "expectedLoss" | "salvageable") => r.reduce((t, x) => t + x[k], 0);
+  const unowned = rows.filter((r) => r.owner === "Unassigned");
+  return {
+    accounts: rows.length,
+    riskArr: sum(rows, "arr"),
+    expectedLoss: sum(rows, "expectedLoss"),
+    salvageable: sum(rows, "salvageable"),
+    unownedExpectedLoss: sum(unowned, "expectedLoss"),
+    unownedCount: unowned.length,
+    top: rows.slice(0, 5),
+  };
+}

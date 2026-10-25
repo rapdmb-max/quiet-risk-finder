@@ -314,7 +314,7 @@ function Index() {
                 onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
               />
             ) : view === "analytics" ? (
-              <Analytics list={scoped} outreach={outreach} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onSummary={openSegment} />
+              <Analytics scope={role === "Marta" ? "all" : role} list={scoped} outreach={outreach} load={load} onRetry={() => { setLoad("loading"); void refresh(); }} onSummary={openSegment} />
             ) : view === "team" ? (
               <TeamLoad
                 list={scoped}

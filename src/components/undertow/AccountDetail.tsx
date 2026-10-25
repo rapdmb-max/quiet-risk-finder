@@ -3,7 +3,7 @@ import { CSMS, formatArr, type Account } from "@/data/accounts";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Sparkline, Tag, severityText } from "./Bits";
-import { ClaudeDraft } from "./ClaudeDraft";
+import { AiBadge, ClaudeDraft } from "./ClaudeDraft";
 import type { ActivityItem } from "@/lib/undertow.server";
 import { contactAge } from "@/lib/portfolio";
 import { formatEmail } from "@/lib/email-format";
@@ -33,6 +33,8 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
   const [slack, setSlack] = useState(() => `${a.name} needs attention: ${a.verdict}`);
   const [playbook, setPlaybook] = useState<Playbook>("reengagement");
   const [callPrep, setCallPrep] = useState("");
+  const [aiEmail, setAiEmail] = useState(false);
+  const [aiSlack, setAiSlack] = useState(false);
   const risk = exposure(a);
   const currency = useCurrency();
   const handled = a.status === "handled";
@@ -118,10 +120,10 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
       {!handled && (
         <>
           <section className="mt-8">
-            <h3 className="eyebrow">Call prep</h3>
+            <h3 className="eyebrow">Call prep · AI</h3>
             <div className="mt-3 rounded-lg border p-5">
               {callPrep
-                ? <p className="whitespace-pre-wrap leading-relaxed">{callPrep}</p>
+                ? <><AiBadge /><p className="mt-2 whitespace-pre-wrap leading-relaxed">{callPrep}</p></>
                 : <p className="text-meta text-muted-ink">Three talking points for your next call, following the {PLAYBOOK_LABELS[playbook].toLowerCase()} playbook.</p>}
               <ClaudeDraft key={`prep-${playbook}`} accountId={a.id} kind="callprep" playbook={playbook} onApply={setCallPrep} />
             </div>
@@ -152,6 +154,7 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
               <p className="text-meta text-muted-ink">
                 To: {channel === "Email" ? `${firstName ?? "contact"} at ${a.name}` : a.owner === "Unassigned" ? "#cs-team (nudge the team to pick it up)" : `${a.owner} in Slack (nudge the owner)`}
               </p>
+              {(channel === "Email" ? aiEmail : aiSlack) && <div className="mt-2"><AiBadge edited /></div>}
               <textarea
                 aria-label="Message"
                 value={channel === "Email" ? draft : slack}
@@ -160,8 +163,8 @@ export function AccountDetail({ account: a, onAssign, onReachedOut, onNotRisk, o
                 className="mt-2 w-full resize-y rounded-md bg-soft p-3 leading-relaxed outline-none focus:outline-2 focus:outline-ink"
               />
               {channel === "Email"
-                ? <ClaudeDraft key={`email-${playbook}`} accountId={a.id} kind="email" playbook={playbook} onApply={(text) => setDraft(formatEmail(text))} />
-                : <ClaudeDraft key={`slack-${playbook}`} accountId={a.id} kind="slack" playbook={playbook} onApply={setSlack} />}
+                ? <ClaudeDraft key={`email-${playbook}`} accountId={a.id} kind="email" playbook={playbook} onApply={(text) => { setDraft(formatEmail(text)); setAiEmail(true); }} />
+                : <ClaudeDraft key={`slack-${playbook}`} accountId={a.id} kind="slack" playbook={playbook} onApply={(text) => { setSlack(text); setAiSlack(true); }} />}
               {channel === "Email" && emailConnected && (
                 <label className="mt-3 flex items-center gap-2 text-meta">
                   <input type="checkbox" checked={pdf} onChange={(e) => setPdf(e.target.checked)} />

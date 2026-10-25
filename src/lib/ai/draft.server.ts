@@ -1,7 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
 import { accounts } from "@/data/accounts";
-import { contextFor, draftRequestSchema, safeGatewayMessage, SYSTEM_PROMPTS } from "./draft-policy";
+import { contextFor, projectionContext, draftRequestSchema, safeGatewayMessage, SYSTEM_PROMPTS } from "./draft-policy";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayResponseHeaders } from "./run-id.ts";
 
 const MODEL = "anthropic/claude-sonnet-5";
@@ -20,9 +20,18 @@ export async function handleDraft(request: Request): Promise<Response> {
     const input = draftRequestSchema.safeParse(await request.json());
     if (!input.success) return Response.json({ message: "Choose a valid account." }, { status: 400 });
     // Draft from the saved account (owner, status, timeline as they are now); fall back to the sample if the database is down.
-    const { getAccount } = await import("@/lib/undertow.server");
-    const account = await getAccount(input.data.accountId).catch(() => accounts.find((a) => a.id === input.data.accountId) ?? null);
-    if (!account) return Response.json({ message: "Account not found." }, { status: 404 });
+    const { getAccount, loadState } = await import("@/lib/undertow.server");
+    const { kind, playbook, scope } = input.data;
+    let content: string;
+    if (kind === "projection") {
+      const all = await loadState().then((s) => s.accounts).catch(() => accounts);
+      const { portfolioProjection } = await import("@/lib/exposure");
+      content = projectionContext(portfolioProjection(scope === "all" ? all : all.filter((a) => a.owner === scope)), scope);
+    } else {
+      const account = await getAccount(input.data.accountId).catch(() => accounts.find((a) => a.id === input.data.accountId) ?? null);
+      if (!account) return Response.json({ message: "Account not found." }, { status: 404 });
+      content = contextFor(kind, account, playbook);
+    }
     const key = process.env['LOVABLE_API_KEY'];
     if (!key) throw new DraftError(401, "Claude drafting is not configured yet.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -56,12 +65,11 @@ export async function handleDraft(request: Request): Promise<Response> {
         } finally { resolveUpstream(); }
       },
     });
-    const { kind, playbook } = input.data;
     const result = streamText({
       model: anthropic(MODEL), maxOutputTokens: 1600, maxRetries: 0,
       abortSignal: request.signal,
       system: SYSTEM_PROMPTS[kind],
-      messages: [{ role: "user", content: contextFor(kind, account, playbook) }],
+      messages: [{ role: "user", content }],
       providerOptions: { anthropic: { thinking: { type: "adaptive" }, effort: "low" } },
     });
     const iterator = result.fullStream[Symbol.asyncIterator]();
