@@ -6,7 +6,7 @@ export function filterAccounts(list: Account[], filter: Filter) {
   if (filter === "handled") return list.filter((a) => a.status === "handled");
   const open = list.filter((a) => a.status === "open");
   if (filter === "radar") return open.filter((a) => a.underRadar);
-  return open;
+  return open.filter((a) => a.level !== "calm");
 }
 
 export function counts(list: Account[]) {

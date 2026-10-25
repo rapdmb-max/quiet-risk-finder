@@ -24,6 +24,9 @@ export interface Account {
   underRadar: boolean;
   owner: string;
   lastTouchDays: number;
+  /** Absolute snapshot-derived date; null explicitly means no contact recorded. */
+  lastContactAt?: string | null;
+  handledReason?: string | null;
   reason: string;
   verdict: string;
   signals: Signal[];
