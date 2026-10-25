@@ -61,6 +61,7 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
 
 ### Changed
 - Removed the inline demo-delivery sentence from Reach out at the owner's request; the page footer still identifies simulated delivery.
+- Removed the repeated ARR-at-risk and unowned-account headline from Triage; shared portfolio totals and team load remain.
 - Unified Portfolio, Triage and Outreach under one sticky header: consistent page title/date layout, role-scoped portfolio totals always visible, and summary links into the Portfolio ledger. View-specific queue and outreach context remain below. Verified identical totals across tabs, Devon scope, summary navigation and scrolling; 11 relevant tests pass.
   Files: src/components/undertow/WorkspaceHeader.tsx, src/components/undertow/Portfolio.tsx, src/components/undertow/Tracker.tsx, src/routes/index.tsx
 - Added checkbox multi-select owner/risk filters to Portfolio and Triage, numeric/contact/name sorting, editable Portfolio owners and per-owner Slack nudge icons. Nudges use existing message activity, preserve customer contact/risk state and remain simulated for the work assignment. Owner edits also work on handled accounts without reopening them; Marta-only assignment is preserved. Browser verified combined filters, owner changes after reload and nudge activity readback. 38 targeted tests pass.
