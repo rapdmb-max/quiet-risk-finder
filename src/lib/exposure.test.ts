@@ -18,3 +18,19 @@ describe("revenue exposure", () => {
     expect(exposure(base)).toEqual({ probability: 0.45, expectedLoss: 45000, salvageable: 24750 });
   });
 });
+
+import { portfolioProjection } from "./exposure";
+describe("portfolio projection", () => {
+  it("sums open at-risk accounts only and isolates unowned exposure", () => {
+    const p = portfolioProjection([
+      base,
+      { ...base, id: "y", owner: "Unassigned" },
+      { ...base, id: "z", level: "calm" },
+      { ...base, id: "h", status: "handled" },
+    ]);
+    expect(p.accounts).toBe(2);
+    expect(p.expectedLoss).toBe(90000);
+    expect(p.unownedExpectedLoss).toBe(45000);
+    expect(p.salvageable).toBe(49500);
+  });
+});
