@@ -34,4 +34,5 @@
 - [x] 4.6 Activity list per account, Reopen, Reset sample week
 - [x] 4.7 Claude drafts read the saved account, not the static sample
 - [x] 4.8a Apply migration in Lovable Cloud; verify five sample accounts and three outreach records on first load and reload; 20 existing rules/brief tests pass
-- [ ] 4.8b Publish and verify the deployed version; run any additional PR acceptance checks
+- [x] 4.8b Request publication of the verified app
+- [ ] 4.8c Verify completed deployment and any additional PR acceptance checks (deployment pending; PR checks not supplied)

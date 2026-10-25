@@ -6,4 +6,4 @@
 # Apply pending database changes and redeploy
 - [x] Apply the pending persistence migration and verify the tables exist.
 - [x] Verify first-load sample data and reload persistence; run existing rules tests.
-- [ ] Request publication of the verified app.
+- [x] Request publication of the verified app.
