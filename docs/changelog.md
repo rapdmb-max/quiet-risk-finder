@@ -28,3 +28,17 @@ Format: `- YYYY-MM-DD Short description (Task x.y)` then `Files: …`, grouped u
   Files: src/components/undertow/ClaudeDraft*, src/lib/ai/*, src/routes/api/draft.ts, src/components/undertow/AccountDetail.tsx
 ### Security
 - Lovable Cloud stores server-only provider access denials; credentials and prompts remain on the server. Draft requests accept only known sample account identifiers and require same-origin requests. No real email, Slack, PDF or customer-data integrations were added.
+
+## 2026-10-25 (Week 4)
+### Added
+- Persistence: accounts, account_events and outreach tables in Lovable Cloud. Owner changes, "I've reached out", "Not a real risk", sent messages and "replied" now survive a reload and are shared across browsers.
+  Files: drizzle/migrations/0001_undertow_persistence.sql, src/integrations/supabase/types.ts, src/lib/undertow.server.ts, src/routes/api/brief.ts
+- Business rules enforced on the server and covered by tests: only Marta assigns owners; a CSM acts only on accounts they own; an account can't be handled twice; reopen restores it; email closes an account, a Slack note doesn't.
+  Files: src/lib/rules.ts, src/lib/rules.test.ts
+- Activity list on each account, Reopen on handled accounts, "Reset sample week" link for reviewers.
+  Files: src/components/undertow/AccountDetail.tsx, src/routes/index.tsx
+### Changed
+- The page loads data from /api/brief with loading and error states; actions update optimistically and roll back with a toast if the server refuses. Claude drafts use the saved account.
+  Files: src/routes/index.tsx, src/lib/ai/draft.server.ts, src/data/outreach.ts
+### Security
+- Tables have RLS on with no client policies; only server routes (service role) touch them. Action payloads are validated with strict schemas and must come from the same origin. Role switching is a demo identity, not authentication.

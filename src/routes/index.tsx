@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ACCOUNTS_WATCHED, BRIEF_DATE, CSMS, CURRENCIES, LAST_WEEK, accounts as seed, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
+import { ACCOUNTS_WATCHED, BRIEF_DATE, CSMS, CURRENCIES, LAST_WEEK, formatArr, levelRank, type Account, type Currency } from "@/data/accounts";
 import { filterAccounts, glance, isStalled, isUnderRadar, scopeFor, type Filter, type Role } from "@/lib/brief";
 import { CurrencyProvider } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { LevelTag, Logo, Tag } from "@/components/undertow/Bits";
 import { AccountDetail } from "@/components/undertow/AccountDetail";
 import { Portfolio } from "@/components/undertow/Portfolio";
-import { SEED_OUTREACH, Tracker, type Outreach } from "@/components/undertow/Tracker";
+import { Tracker, type Outreach } from "@/components/undertow/Tracker";
+import type { ActivityItem, BriefState } from "@/lib/undertow.server";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,14 +35,17 @@ const filtersFor = (role: Role): { id: Filter; label: string; key: string }[] =>
 function Index() {
   const [view, setView] = useState<View>("brief");
   const [role, setRole] = useState<Role>("Marta");
-  const [list, setList] = useState<Account[]>(seed);
+  const [list, setList] = useState<Account[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [load, setLoad] = useState<"loading" | "ready" | "error">("loading");
+  const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<Filter>("week");
-  const [selectedId, setSelectedId] = useState<string | null>(seed[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [toast, setToast] = useState<string | null>(null);
   const [palette, setPalette] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
-  const [outreach, setOutreach] = useState<Outreach[]>(SEED_OUTREACH);
+  const [outreach, setOutreach] = useState<Outreach[]>([]);
   const [query, setQuery] = useState("");
   const detailRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -53,6 +57,47 @@ function Index() {
   };
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  // Saved state lives in Lovable Cloud; the browser only holds a copy.
+  const applyState = (s: BriefState) => { setList(s.accounts); setOutreach(s.outreach); setActivity(s.activity); };
+  const refresh = async () => {
+    try {
+      const res = await fetch("/api/brief", { cache: "no-store" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message);
+      applyState(body);
+      setLoad("ready");
+      return body as BriefState;
+    } catch {
+      setLoad("error");
+      return null;
+    }
+  };
+  useEffect(() => { void refresh(); }, []);
+
+  /** Optimistic write: update the screen now, confirm with the server, roll back if it refuses. */
+  const act = async (action: Record<string, unknown>, optimistic: () => void, ok: string) => {
+    const before = { list, outreach };
+    optimistic();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ actor: role, ...action }) });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setList(before.list); setOutreach(before.outreach);
+        if (res.status === 409) void refresh();
+        say(body.message ?? "Couldn't save. Nothing changed. Try again.");
+        return;
+      }
+      applyState(body);
+      say(ok);
+    } catch {
+      setList(before.list); setOutreach(before.outreach);
+      say("Couldn't save. Nothing changed. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const sorted = [...list].sort((a, b) => levelRank[a.level] - levelRank[b.level] || b.arr * (a.underRadar ? 1 : 0.5) - a.arr * (b.underRadar ? 1 : 0.5) || Number(b.underRadar) - Number(a.underRadar));
   const scoped = scopeFor(sorted, role);
   const FILTERS = filtersFor(role);
@@ -63,6 +108,7 @@ function Index() {
   const myStalled = outreach.filter((o) => isStalled(o) && (role === "Marta" || o.by === role)).length;
   const csms = CSMS.filter((x) => x !== "Unassigned");
   const selected = visible.find((a) => a.id === selectedId) ?? visible[0];
+  const selectedActivity = selected ? activity.filter((x) => x.accountId === selected.id).slice(0, 5) : [];
   const open = filterAccounts(scoped, "week");
   const switchRole = (r: Role) => {
     setRole(r);
@@ -82,19 +128,21 @@ function Index() {
 
   const assign = (id: string, owner: string) => {
     const a = list.find((x) => x.id === id)!;
-    update(id, { owner, underRadar: isUnderRadar({ owner, lastTouchDays: a.lastTouchDays }) });
-    say(owner === "Unassigned" ? "Owner removed." : `Assigned to ${owner}. They'll get this summary in Slack.`);
+    void act({ type: "assign", accountId: id, owner },
+      () => update(id, { owner, underRadar: isUnderRadar({ owner, lastTouchDays: a.lastTouchDays }) }),
+      owner === "Unassigned" ? "Owner removed." : `Assigned to ${owner}. They'll get this summary in Slack.`);
   };
 
-  const handle = (id: string, note: string, msg: string) => {
+  const moveOn = (id: string, note: string) => {
     const idx = visible.findIndex((a) => a.id === id);
     const next = visible[idx + 1] ?? visible[idx - 1];
     update(id, { status: "handled", handledNote: note, underRadar: false });
     setSelectedId(next?.id ?? null);
-    say(msg);
   };
-  const reachedOut = (id: string) => handle(id, `${role} reached out · watching for 14 days`, "Marked as handled. Watching for 14 days.");
-  const notRisk = (id: string) => handle(id, "Marked not a real risk · signals weighted less", "Got it. These signals will count less here.");
+  const reachedOut = (id: string) => void act({ type: "reached_out", accountId: id }, () => moveOn(id, `${role} reached out · watching for 14 days`), "Marked as handled. Watching for 14 days.");
+  const notRisk = (id: string) => void act({ type: "not_a_risk", accountId: id }, () => moveOn(id, "Marked not a real risk · signals weighted less"), "Got it. These signals will count less here.");
+  const reopen = (id: string) => void act({ type: "reopen", accountId: id }, () => update(id, { status: "open", handledNote: undefined }), "Reopened. It's back in the brief.");
+  const reset = () => void act({ type: "reset" }, () => {}, "Sample week restored.").then(() => { setFilter("week"); setSelectedId(null); });
 
   const openInBrief = (id?: string) => {
     setView("brief");
@@ -234,7 +282,7 @@ function Index() {
               <Tracker
                 items={outreach}
                 role={role}
-                onReplied={(id) => { setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))); say("Marked as replied."); }}
+                onReplied={(id) => void act({ type: "replied", outreachId: id }, () => setOutreach((l) => l.map((o) => (o.id === id ? { ...o, status: "replied" } : o))), "Marked as replied.")}
                 onOpen={(id) => pick(list.find((x) => x.id === id)!)}
                 onEscalate={(o) => say(role === "Marta" ? `Draft opened: Marta to ${o.account}'s exec sponsor.` : `Marta asked to step in on ${o.account}.`)}
               />
@@ -245,7 +293,9 @@ function Index() {
                     <p className="font-mono text-[13px] text-muted-ink">
                       {BRIEF_DATE} · {ACCOUNTS_WATCHED} accounts watched
                     </p>
-                    {role === "Marta" ? (
+                    {load !== "ready" ? (
+                      <h1 className="headline mt-2 text-muted-ink">{load === "loading" ? "Reading this week's signals…" : "This week's brief didn't load."}</h1>
+                    ) : role === "Marta" ? (
                       <>
                         <h1 className="headline mt-2">
                           <span className="font-mono">{formatArr(g.arrAtRisk, currency)}</span> a year at risk across {g.open} account{g.open === 1 ? "" : "s"}.{" "}
@@ -286,7 +336,19 @@ function Index() {
                 <div className="mt-6 grid gap-6 min-[900px]:grid-cols-12">
                   {/* Pane 2: list, one line per account like the Slack brief */}
                   <div className="self-start overflow-hidden rounded-lg border bg-panel min-[900px]:sticky min-[900px]:top-24 min-[900px]:col-span-5">
-                    {visible.length === 0 && <p className="p-8 text-center text-muted-ink">Nothing here.</p>}
+                    {load === "loading" && [0, 1, 2, 3].map((i) => (
+                      <div key={i} aria-hidden className="border-b px-4 py-4 last:border-b-0">
+                        <div className="h-4 w-2/3 animate-pulse rounded bg-soft" />
+                        <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-soft" />
+                      </div>
+                    ))}
+                    {load === "error" && (
+                      <div className="p-8 text-center text-muted-ink">
+                        <p>Couldn't load this week's brief.</p>
+                        <button onClick={() => { setLoad("loading"); void refresh(); }} className="spring-press mt-3 rounded-md border px-3 py-1.5 text-ink hover:bg-soft">Try again</button>
+                      </div>
+                    )}
+                    {load === "ready" && visible.length === 0 && <p className="p-8 text-center text-muted-ink">Nothing here.</p>}
                     {visible.map((a, i) => {
                       const lvl = a.status === "handled" ? "calm" : a.level;
                       return (
@@ -347,21 +409,26 @@ function Index() {
                         onNotify={say}
                         emailConnected={emailConnected}
                         onConnectEmail={() => { setEmailConnected(true); say(`Email connected as ${role.toLowerCase()}@yourcompany.com.`); }}
-                        onSend={(channel, to, pdf) => {
+                        activity={selectedActivity}
+                        saving={saving}
+                        onReopen={() => reopen(selected.id)}
+                        onSend={(channel, to, pdf) => void act({ type: "send", accountId: selected.id, channel, to, pdf }, () => {
                           setOutreach((l) => [{ id: crypto.randomUUID(), accountId: selected.id, account: selected.name, channel, to, by: role, daysAgo: 0, pdf, status: "waiting" }, ...l]);
-                          if (channel === "Email") handle(selected.id, `${role} emailed ${to} · waiting on reply`, `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.`);
-                          else say(`Sent to ${to} in Slack. Tracking the reply.`);
-                        }}
+                          if (channel === "Email") moveOn(selected.id, `${role} emailed ${to} · waiting on reply`);
+                        }, channel === "Email" ? `Email sent to ${to}${pdf ? " with PDF" : ""}. Tracking the reply.` : `Sent to ${to} in Slack. Tracking the reply.`)}
                       />
-                    ) : (
+                    ) : load === "ready" ? (
                       <div className="rounded-lg border bg-panel p-10 text-center text-muted-ink">Nothing here.</div>
+                    ) : (
+                      <div aria-busy className="h-[420px] animate-pulse rounded-lg border bg-panel" />
                     )}
                   </div>
                 </div>
               </>
             )}
             <p className="mt-12 text-center text-[13px] text-muted-ink">
-              Clickable prototype with sample data. Companies and people are fictional. Currency rates are illustrative.
+              Sample companies and people are fictional; actions are saved. Currency rates are illustrative.
+              {role === "Marta" && load === "ready" && <> · <button onClick={reset} className="underline hover:text-ink">Reset sample week</button></>}
             </p>
           </main>
         </div>

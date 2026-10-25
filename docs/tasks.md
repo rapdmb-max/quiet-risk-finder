@@ -24,3 +24,13 @@
 - [x] Live Claude drafts grounded in sample account evidence, with server-only credentials
 - [x] Human review with Use draft / Discard, streaming, Stop and safe failure states
 - [x] Live generation verified; account safeguards and review/cancellation tests
+
+## Week 4 — From prototype to product
+- [x] 4.1 Data model: accounts, account_events, outreach (migration 0001), RLS on, service-role only
+- [x] 4.2 Business rules in src/lib/rules.ts with tests (who can assign, handled needs a reason, no double handling, reopen)
+- [x] 4.3 Server routes GET/POST /api/brief; first load seeds the sample week
+- [x] 4.4 UI reads from the database: loading, error + retry, empty states
+- [x] 4.5 Actions persist with optimistic update, rollback and error toast; conflict (409) refreshes
+- [x] 4.6 Activity list per account, Reopen, Reset sample week
+- [x] 4.7 Claude drafts read the saved account, not the static sample
+- [ ] 4.8 Apply migration in Lovable Cloud, publish, run the acceptance checks in the PR
